@@ -1,0 +1,65 @@
+{
+    "name": "newsong/podcast-link-finder",
+    "description": "Automatically find and link podcast episodes from Transistor to Spotify, Apple Podcasts, and YouTube",
+    "type": "statamic-addon",
+    "version": "1.0.0",
+    "license": "MIT",
+    "keywords": [
+        "statamic",
+        "addon",
+        "podcast",
+        "transistor",
+        "spotify",
+        "apple-podcasts",
+        "youtube",
+        "fieldtype"
+    ],
+    "homepage": "https://github.com/newsong/podcast-link-finder",
+    "authors": [
+        {
+            "name": "New Song Church",
+            "email": "tech@newsongpeople.com",
+            "homepage": "https://newsongchurch.org"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/newsong/podcast-link-finder/issues",
+        "source": "https://github.com/newsong/podcast-link-finder"
+    },
+    "require": {
+        "php": "^8.1|^8.2|^8.3",
+        "statamic/cms": "^5.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "NewSong\\PodcastLinkFinder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "NewSong\\PodcastLinkFinder\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "Podcast Link Finder",
+            "description": "Find and link podcast episodes across platforms"
+        },
+        "laravel": {
+            "providers": [
+                "NewSong\\PodcastLinkFinder\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
