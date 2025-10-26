@@ -1,0 +1,5 @@
+name: Admin
+super: true
+id: fd2e4901-6879-42aa-ae16-289868821632
+password_hash: $2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
+email: admin@example.com
