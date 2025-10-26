@@ -1,0 +1,13 @@
+title: Messages
+template: default
+layout: default
+mount: null
+date: true
+date_behavior:
+  past: public
+  future: private
+sort_dir: desc
+sort_by: date
+blueprints:
+  - message
+route: /messages/{slug}
