@@ -190,7 +190,7 @@
                 <summary class="cursor-pointer text-sm text-gray-600 hover:text-gray-800 select-none">
                     Enter links manually
                 </summary>
-                <div class="mt-4 space-y-3">
+                <div class="mt-4 space-y-6">
                     <div>
                         <label class="publish-field-label text-sm">YouTube URL</label>
                         <input
