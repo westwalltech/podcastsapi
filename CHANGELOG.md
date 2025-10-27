@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2024-10-27
+
+### Added
+- Configurable search days restriction for YouTube to conserve API quota (defaults to Sundays only)
+- New artisan command `php artisan podcast:test-youtube` for diagnosing YouTube API issues
+- Detailed error logging that captures YouTube API error reasons (quotaExceeded, forbidden, etc.)
+- Helper methods `isSearchAllowedToday()` and `getSearchRestrictionMessage()` in YouTubeService
+
+### Changed
+- YouTube search now respects configured `search_days` to prevent quota exhaustion
+- Improved error messages to show specific YouTube API quota and permission issues
+- Better distinction between API errors and day restrictions in user-facing messages
+
+### Fixed
+- YouTube API quota management - can now restrict searches to specific days to stay within free tier limits
+
 ## [1.0.3] - 2024-10-26
 
 ### Changed

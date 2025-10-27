@@ -29,6 +29,11 @@ return [
     'youtube' => [
         'api_key' => env('YOUTUBE_API_KEY'),
         'channel_id' => env('YOUTUBE_CHANNEL_ID', ''),
+
+        // Days of the week when YouTube search is allowed (to conserve API quota)
+        // Valid values: 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+        // Set to empty array [] to allow searches every day
+        'search_days' => ['Sunday'],
     ],
 
     /*

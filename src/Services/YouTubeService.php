@@ -22,6 +22,50 @@ class YouTubeService
     }
 
     /**
+     * Check if YouTube search is allowed today based on configured search days
+     *
+     * @return bool
+     */
+    public function isSearchAllowedToday(): bool
+    {
+        $allowedDays = config('podcast-link-finder.youtube.search_days', []);
+
+        // If empty array, allow all days
+        if (empty($allowedDays)) {
+            return true;
+        }
+
+        $currentDay = now()->format('l'); // 'l' = full day name like 'Sunday'
+
+        return in_array($currentDay, $allowedDays);
+    }
+
+    /**
+     * Get a friendly message about when YouTube search is available
+     *
+     * @return string|null
+     */
+    public function getSearchRestrictionMessage(): ?string
+    {
+        if ($this->isSearchAllowedToday()) {
+            return null;
+        }
+
+        $allowedDays = config('podcast-link-finder.youtube.search_days', []);
+
+        if (empty($allowedDays)) {
+            return null;
+        }
+
+        if (count($allowedDays) === 1) {
+            return "YouTube search only available on {$allowedDays[0]}s to conserve API quota. Please enter URL manually or wait until {$allowedDays[0]}.";
+        }
+
+        $days = implode(', ', $allowedDays);
+        return "YouTube search only available on: {$days}. Please enter URL manually.";
+    }
+
+    /**
      * Search for a video by title in the channel
      *
      * @param string $title
@@ -119,6 +163,12 @@ class YouTubeService
      */
     public function searchAllMatches(string $title, ?string $publishDate = null): array
     {
+        // Check if search is allowed today
+        if (!$this->isSearchAllowedToday()) {
+            \Log::info('YouTube search skipped: Not an allowed search day');
+            return [];
+        }
+
         try {
             $params = [
                 'part' => 'snippet',
@@ -176,11 +226,30 @@ class YouTubeService
             $errorMessage = $e->getMessage();
             \Log::error('YouTube API Error: ' . $errorMessage);
 
-            // Check for specific error types
-            if (str_contains($errorMessage, '403')) {
-                \Log::error('YouTube API quota may be exceeded or API key lacks permissions');
-            } elseif (str_contains($errorMessage, '400')) {
-                \Log::error('YouTube API bad request - check channel ID and parameters');
+            // Try to get detailed error information from response
+            if (method_exists($e, 'hasResponse') && $e->hasResponse()) {
+                $response = $e->getResponse();
+                $body = $response->getBody()->getContents();
+                $errorData = json_decode($body, true);
+
+                if ($errorData && isset($errorData['error'])) {
+                    $apiError = $errorData['error'];
+                    $reason = $apiError['errors'][0]['reason'] ?? 'unknown';
+                    $message = $apiError['message'] ?? 'Unknown error';
+
+                    \Log::error('YouTube API Error Details:', [
+                        'code' => $apiError['code'] ?? 'N/A',
+                        'reason' => $reason,
+                        'message' => strip_tags($message),
+                    ]);
+
+                    // Log specific guidance based on error reason
+                    if ($reason === 'quotaExceeded') {
+                        \Log::error('YouTube API quota exceeded. Check your quota at: https://console.cloud.google.com/apis/api/youtube.googleapis.com/quotas');
+                    } elseif ($reason === 'forbidden') {
+                        \Log::error('YouTube API access forbidden. Check API key permissions and restrictions.');
+                    }
+                }
             }
 
             // Return empty array - errors are logged for debugging
@@ -223,6 +292,32 @@ class YouTubeService
         } catch (\Exception $e) {
             $message = $e->getMessage();
 
+            // Try to get detailed error information from response
+            if (method_exists($e, 'hasResponse') && $e->hasResponse()) {
+                $response = $e->getResponse();
+                $body = $response->getBody()->getContents();
+                $errorData = json_decode($body, true);
+
+                if ($errorData && isset($errorData['error'])) {
+                    $apiError = $errorData['error'];
+                    $reason = $apiError['errors'][0]['reason'] ?? 'unknown';
+
+                    // Return specific message based on error reason
+                    if ($reason === 'quotaExceeded') {
+                        return [
+                            'success' => false,
+                            'message' => 'YouTube API quota exceeded. Quotas reset at midnight Pacific Time. Check usage at: console.cloud.google.com'
+                        ];
+                    } elseif ($reason === 'forbidden' || $reason === 'accessNotConfigured') {
+                        return [
+                            'success' => false,
+                            'message' => 'YouTube API not enabled or access forbidden. Enable the API in Google Cloud Console.'
+                        ];
+                    }
+                }
+            }
+
+            // Fallback to generic error messages based on status code
             if (str_contains($message, '403')) {
                 return [
                     'success' => false,

@@ -4,6 +4,7 @@ namespace NewSong\PodcastLinkFinder;
 
 use Statamic\Providers\AddonServiceProvider;
 use NewSong\PodcastLinkFinder\Fieldtypes\PodcastLinkFinder;
+use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
 
 class ServiceProvider extends AddonServiceProvider
 {
@@ -13,6 +14,10 @@ class ServiceProvider extends AddonServiceProvider
 
     protected $routes = [
         'cp' => __DIR__.'/../routes/cp.php',
+    ];
+
+    protected $commands = [
+        TestYouTubeCommand::class,
     ];
 
     protected $vite = [

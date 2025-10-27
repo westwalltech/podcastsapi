@@ -170,18 +170,23 @@ class PodcastSearchController
             $warnings['apple_podcasts'] = 'Failed to search Apple Podcasts. Check API credentials.';
         }
 
-        try {
-            $results['youtube'] = $this->youtube->searchAllMatches($title, $publishDate);
-            // If YouTube returns empty results, check if it's an API error
-            if (empty($results['youtube'])) {
-                $youtubeStatus = $this->youtube->testConnection();
-                if (!$youtubeStatus['success']) {
-                    $warnings['youtube'] = $youtubeStatus['message'];
+        // Check if YouTube search is allowed today
+        if (!$this->youtube->isSearchAllowedToday()) {
+            $warnings['youtube'] = $this->youtube->getSearchRestrictionMessage();
+        } else {
+            try {
+                $results['youtube'] = $this->youtube->searchAllMatches($title, $publishDate);
+                // If YouTube returns empty results, check if it's an API error
+                if (empty($results['youtube'])) {
+                    $youtubeStatus = $this->youtube->testConnection();
+                    if (!$youtubeStatus['success']) {
+                        $warnings['youtube'] = $youtubeStatus['message'];
+                    }
                 }
+            } catch (\Exception $e) {
+                \Log::warning("Failed to search YouTube: {$e->getMessage()}");
+                $warnings['youtube'] = 'Failed to search YouTube. ' . $e->getMessage();
             }
-        } catch (\Exception $e) {
-            \Log::warning("Failed to search YouTube: {$e->getMessage()}");
-            $warnings['youtube'] = 'Failed to search YouTube. ' . $e->getMessage();
         }
 
         return response()->json([
