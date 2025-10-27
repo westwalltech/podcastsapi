@@ -220,6 +220,179 @@ The addon uses PHP's `similar_text()` function to calculate similarity between e
 6. User confirms or changes selections
 7. Links are saved with the entry
 
+## Artisan Commands
+
+### Bulk Update Links
+
+Automatically find and add podcast platform links to all existing entries in a collection:
+
+```bash
+php artisan podcast:bulk-update {collection} [options]
+```
+
+**Options:**
+
+- `--field=podcast_links` - The field handle containing podcast links (default: podcast_links)
+- `--dry-run` - Preview changes without saving
+- `--only-empty` - Only update entries without existing links
+- `--force-youtube` - Search YouTube even if not an allowed search day
+- `--platforms=spotify,apple,youtube` - Only search specific platforms
+- `--limit=10` - Limit number of entries to process
+
+**Examples:**
+
+```bash
+# Dry run to see what would be updated
+php artisan podcast:bulk-update messages --dry-run
+
+# Update all messages, only searching Spotify and Apple
+php artisan podcast:bulk-update messages --platforms=spotify,apple
+
+# Only update entries that don't have links yet
+php artisan podcast:bulk-update messages --only-empty
+
+# Force YouTube search even on non-Sunday (uses quota)
+php artisan podcast:bulk-update messages --force-youtube
+
+# Process only first 5 entries
+php artisan podcast:bulk-update messages --limit=5
+```
+
+**How it works:**
+
+1. Fetches all entries from the specified collection
+2. Matches each entry to a Transistor episode by title (60%+ similarity required)
+3. Searches each platform for the matched episode
+4. Updates the podcast_links field with found URLs
+5. Respects YouTube search day restrictions (unless --force-youtube is used)
+6. Shows progress bar and summary report
+
+**Output:**
+
+```
+Bulk updating collection: messages
+Found 45 entries to process
+
+Fetching episodes from Transistor...
+Loaded 100 episodes from Transistor
+
+⚠️  YouTube search restricted (not Sunday). Use --force-youtube to override.
+
+ 45/45 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100% - Complete!
+
+Summary:
+  ✓ Updated: 42 entries
+  ⏭ Skipped: 3 entries (no match)
+
+  📊 YouTube quota used: 0 units
+```
+
+### Test YouTube API
+
+Diagnose YouTube API connection issues:
+
+```bash
+php artisan podcast:test-youtube [--title="search term"]
+```
+
+This command tests your YouTube API configuration and displays detailed error messages if there are issues with quota, permissions, or connectivity.
+
+### Auto-Update (Scheduled Task)
+
+Automatically update podcast platform links for recent entries on a schedule:
+
+```bash
+php artisan podcast:auto-update
+```
+
+This command is designed to run automatically via Laravel's scheduler. It will:
+
+1. Check entries created/modified in the last 7 days
+2. Find missing platform links (Spotify, Apple Podcasts, YouTube)
+3. Search only the missing platforms
+4. Update entries automatically
+5. Log all activity to Laravel logs
+
+**Setup:**
+
+1. **Configure the scheduler** - Add to your server's crontab:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+2. **Configure auto-update** - Edit your `.env` file:
+
+```env
+# Enable/disable auto-update
+PODCAST_AUTO_UPDATE_ENABLED=true
+
+# Which collection to update
+PODCAST_AUTO_UPDATE_COLLECTION=messages
+
+# Field handle for podcast links
+PODCAST_AUTO_UPDATE_FIELD=podcast_links
+```
+
+3. **Customize schedule** (optional) - Edit `config/podcast-link-finder.php`:
+
+```php
+'auto_update' => [
+    'enabled' => env('PODCAST_AUTO_UPDATE_ENABLED', true),
+    'collection' => env('PODCAST_AUTO_UPDATE_COLLECTION', 'messages'),
+    'field' => env('PODCAST_AUTO_UPDATE_FIELD', 'podcast_links'),
+    'days_lookback' => 7, // Only check recent entries
+    'schedule' => [
+        'day' => 'tuesdays', // Day to run (mondays, tuesdays, etc.)
+        'time' => '08:00',   // Time to run (24-hour format)
+    ],
+],
+```
+
+**Default Schedule:** Every Tuesday at 8:00 AM
+
+**Manual Execution:**
+
+```bash
+# Run now (respects enabled config)
+php artisan podcast:auto-update
+
+# Force run even if disabled
+php artisan podcast:auto-update --force
+
+# Test with verbose output
+php artisan podcast:auto-update --force -v
+```
+
+**Viewing Logs:**
+
+```bash
+# View recent logs
+tail -f storage/logs/laravel.log | grep "Podcast auto-update"
+
+# View today's auto-update logs
+grep "Podcast auto-update" storage/logs/laravel-$(date +%Y-%m-%d).log
+```
+
+**Example Log Output:**
+
+```
+[2024-10-29 08:00:00] INFO: Podcast auto-update started {"collection":"messages","days_lookback":7}
+[2024-10-29 08:00:01] INFO: Found 8 entries from last 7 days
+[2024-10-29 08:00:05] INFO: Updated: Looking Unto Jesus - Gospel Living {"added_platforms":"YouTube, Spotify"}
+[2024-10-29 08:00:08] INFO: Updated: Looking Unto Jesus - Union with Christ {"added_platforms":"Apple Podcasts"}
+[2024-10-29 08:00:10] INFO: Skipped: Looking Unto Jesus - Created to Flourish - All platforms already present
+[2024-10-29 08:00:15] INFO: Podcast auto-update completed {"processed":8,"updated":5,"skipped":3,"errors":0,"youtube_quota_used":500}
+[2024-10-29 08:00:15] INFO: Updated entries: [{"title":"Gospel Living","platforms":["YouTube","Spotify"]},...]
+```
+
+**YouTube Quota Management:**
+
+- Auto-update runs on **Tuesdays by default** (configurable)
+- YouTube search is **enabled on Sundays and Tuesdays**
+- Only searches platforms that are **actually missing** (efficient quota usage)
+- Logs quota usage for tracking
+
 ## Development
 
 ### Building Assets
