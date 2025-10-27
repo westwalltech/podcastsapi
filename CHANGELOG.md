@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2024-10-27
+
+### Added
+- Automatic scheduled updates via Laravel scheduler with `php artisan podcast:auto-update` command
+- Auto-update features:
+  - Runs automatically every Tuesday at 8:00 AM (configurable)
+  - Checks only entries created/modified in last 7 days
+  - Searches only missing platforms (smart, efficient updates)
+  - Comprehensive logging to Laravel logs (no email notifications)
+  - Manual execution with `--force` flag option
+- Configuration options in `config/podcast-link-finder.php`:
+  - Enable/disable auto-update
+  - Configure collection and field handle
+  - Set days lookback (default: 7)
+  - Customize schedule day and time
+- Environment variable support:
+  - `PODCAST_AUTO_UPDATE_ENABLED`
+  - `PODCAST_AUTO_UPDATE_COLLECTION`
+  - `PODCAST_AUTO_UPDATE_FIELD`
+
+### Changed
+- YouTube search days updated to include both Sunday and Tuesday (was Sunday only)
+- ServiceProvider now registers scheduler task for auto-updates
+- Scheduler prevents overlapping executions and runs in background
+
+### Fixed
+- Statamic query builder date comparison issue - now filters entries by date in memory
+
 ## [1.0.5] - 2024-10-27
 
 ### Added

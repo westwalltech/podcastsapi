@@ -297,6 +297,102 @@ php artisan podcast:test-youtube [--title="search term"]
 
 This command tests your YouTube API configuration and displays detailed error messages if there are issues with quota, permissions, or connectivity.
 
+### Auto-Update (Scheduled Task)
+
+Automatically update podcast platform links for recent entries on a schedule:
+
+```bash
+php artisan podcast:auto-update
+```
+
+This command is designed to run automatically via Laravel's scheduler. It will:
+
+1. Check entries created/modified in the last 7 days
+2. Find missing platform links (Spotify, Apple Podcasts, YouTube)
+3. Search only the missing platforms
+4. Update entries automatically
+5. Log all activity to Laravel logs
+
+**Setup:**
+
+1. **Configure the scheduler** - Add to your server's crontab:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+2. **Configure auto-update** - Edit your `.env` file:
+
+```env
+# Enable/disable auto-update
+PODCAST_AUTO_UPDATE_ENABLED=true
+
+# Which collection to update
+PODCAST_AUTO_UPDATE_COLLECTION=messages
+
+# Field handle for podcast links
+PODCAST_AUTO_UPDATE_FIELD=podcast_links
+```
+
+3. **Customize schedule** (optional) - Edit `config/podcast-link-finder.php`:
+
+```php
+'auto_update' => [
+    'enabled' => env('PODCAST_AUTO_UPDATE_ENABLED', true),
+    'collection' => env('PODCAST_AUTO_UPDATE_COLLECTION', 'messages'),
+    'field' => env('PODCAST_AUTO_UPDATE_FIELD', 'podcast_links'),
+    'days_lookback' => 7, // Only check recent entries
+    'schedule' => [
+        'day' => 'tuesdays', // Day to run (mondays, tuesdays, etc.)
+        'time' => '08:00',   // Time to run (24-hour format)
+    ],
+],
+```
+
+**Default Schedule:** Every Tuesday at 8:00 AM
+
+**Manual Execution:**
+
+```bash
+# Run now (respects enabled config)
+php artisan podcast:auto-update
+
+# Force run even if disabled
+php artisan podcast:auto-update --force
+
+# Test with verbose output
+php artisan podcast:auto-update --force -v
+```
+
+**Viewing Logs:**
+
+```bash
+# View recent logs
+tail -f storage/logs/laravel.log | grep "Podcast auto-update"
+
+# View today's auto-update logs
+grep "Podcast auto-update" storage/logs/laravel-$(date +%Y-%m-%d).log
+```
+
+**Example Log Output:**
+
+```
+[2024-10-29 08:00:00] INFO: Podcast auto-update started {"collection":"messages","days_lookback":7}
+[2024-10-29 08:00:01] INFO: Found 8 entries from last 7 days
+[2024-10-29 08:00:05] INFO: Updated: Looking Unto Jesus - Gospel Living {"added_platforms":"YouTube, Spotify"}
+[2024-10-29 08:00:08] INFO: Updated: Looking Unto Jesus - Union with Christ {"added_platforms":"Apple Podcasts"}
+[2024-10-29 08:00:10] INFO: Skipped: Looking Unto Jesus - Created to Flourish - All platforms already present
+[2024-10-29 08:00:15] INFO: Podcast auto-update completed {"processed":8,"updated":5,"skipped":3,"errors":0,"youtube_quota_used":500}
+[2024-10-29 08:00:15] INFO: Updated entries: [{"title":"Gospel Living","platforms":["YouTube","Spotify"]},...]
+```
+
+**YouTube Quota Management:**
+
+- Auto-update runs on **Tuesdays by default** (configurable)
+- YouTube search is **enabled on Sundays and Tuesdays**
+- Only searches platforms that are **actually missing** (efficient quota usage)
+- Logs quota usage for tracking
+
 ## Development
 
 ### Building Assets

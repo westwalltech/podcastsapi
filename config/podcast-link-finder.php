@@ -33,7 +33,7 @@ return [
         // Days of the week when YouTube search is allowed (to conserve API quota)
         // Valid values: 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
         // Set to empty array [] to allow searches every day
-        'search_days' => ['Sunday'],
+        'search_days' => ['Sunday', 'Tuesday'],
     ],
 
     /*
@@ -54,5 +54,21 @@ return [
         'fuzzy_threshold' => 0.6, // 0-1, higher = stricter matching
         'date_range_days' => 14, // How many days before/after to search
         'max_results' => 20, // Max episodes to show in dropdown
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auto-Update Configuration
+    |--------------------------------------------------------------------------
+    */
+    'auto_update' => [
+        'enabled' => env('PODCAST_AUTO_UPDATE_ENABLED', true),
+        'collection' => env('PODCAST_AUTO_UPDATE_COLLECTION', 'messages'),
+        'field' => env('PODCAST_AUTO_UPDATE_FIELD', 'podcast_links'),
+        'days_lookback' => 7, // Only check entries created/modified in last N days
+        'schedule' => [
+            'day' => 'tuesdays', // Day of week to run (mondays, tuesdays, wednesdays, etc.)
+            'time' => '08:00',   // Time to run (24-hour format)
+        ],
     ],
 ];
