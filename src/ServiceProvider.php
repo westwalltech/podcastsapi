@@ -5,6 +5,7 @@ namespace NewSong\PodcastLinkFinder;
 use Statamic\Providers\AddonServiceProvider;
 use NewSong\PodcastLinkFinder\Fieldtypes\PodcastLinkFinder;
 use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
+use NewSong\PodcastLinkFinder\Console\Commands\BulkUpdateLinksCommand;
 
 class ServiceProvider extends AddonServiceProvider
 {
@@ -18,6 +19,7 @@ class ServiceProvider extends AddonServiceProvider
 
     protected $commands = [
         TestYouTubeCommand::class,
+        BulkUpdateLinksCommand::class,
     ];
 
     protected $vite = [

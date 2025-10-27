@@ -220,6 +220,83 @@ The addon uses PHP's `similar_text()` function to calculate similarity between e
 6. User confirms or changes selections
 7. Links are saved with the entry
 
+## Artisan Commands
+
+### Bulk Update Links
+
+Automatically find and add podcast platform links to all existing entries in a collection:
+
+```bash
+php artisan podcast:bulk-update {collection} [options]
+```
+
+**Options:**
+
+- `--field=podcast_links` - The field handle containing podcast links (default: podcast_links)
+- `--dry-run` - Preview changes without saving
+- `--only-empty` - Only update entries without existing links
+- `--force-youtube` - Search YouTube even if not an allowed search day
+- `--platforms=spotify,apple,youtube` - Only search specific platforms
+- `--limit=10` - Limit number of entries to process
+
+**Examples:**
+
+```bash
+# Dry run to see what would be updated
+php artisan podcast:bulk-update messages --dry-run
+
+# Update all messages, only searching Spotify and Apple
+php artisan podcast:bulk-update messages --platforms=spotify,apple
+
+# Only update entries that don't have links yet
+php artisan podcast:bulk-update messages --only-empty
+
+# Force YouTube search even on non-Sunday (uses quota)
+php artisan podcast:bulk-update messages --force-youtube
+
+# Process only first 5 entries
+php artisan podcast:bulk-update messages --limit=5
+```
+
+**How it works:**
+
+1. Fetches all entries from the specified collection
+2. Matches each entry to a Transistor episode by title (60%+ similarity required)
+3. Searches each platform for the matched episode
+4. Updates the podcast_links field with found URLs
+5. Respects YouTube search day restrictions (unless --force-youtube is used)
+6. Shows progress bar and summary report
+
+**Output:**
+
+```
+Bulk updating collection: messages
+Found 45 entries to process
+
+Fetching episodes from Transistor...
+Loaded 100 episodes from Transistor
+
+⚠️  YouTube search restricted (not Sunday). Use --force-youtube to override.
+
+ 45/45 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100% - Complete!
+
+Summary:
+  ✓ Updated: 42 entries
+  ⏭ Skipped: 3 entries (no match)
+
+  📊 YouTube quota used: 0 units
+```
+
+### Test YouTube API
+
+Diagnose YouTube API connection issues:
+
+```bash
+php artisan podcast:test-youtube [--title="search term"]
+```
+
+This command tests your YouTube API configuration and displays detailed error messages if there are issues with quota, permissions, or connectivity.
+
 ## Development
 
 ### Building Assets

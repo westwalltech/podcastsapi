@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2024-10-27
+
+### Added
+- New artisan command `php artisan podcast:bulk-update` for batch updating podcast links across all entries in a collection
+- Bulk update features:
+  - Automatically matches existing entries to Transistor episodes by title
+  - Searches all platforms (Spotify, Apple Podcasts, YouTube) for each matched episode
+  - Updates podcast_links field with found URLs
+  - Progress bar with real-time status updates
+  - Comprehensive summary report (updated, skipped, errors, quota usage)
+- Command options:
+  - `--dry-run` - Preview changes without saving
+  - `--only-empty` - Only update entries without existing links
+  - `--force-youtube` - Search YouTube even on restricted days
+  - `--platforms` - Only search specific platforms
+  - `--limit` - Limit number of entries to process
+- Fuzzy matching algorithm to pair Statamic entries with Transistor episodes (60%+ similarity threshold)
+- Respects YouTube search day restrictions unless overridden with --force-youtube flag
+
+### Changed
+- ServiceProvider now registers BulkUpdateLinksCommand
+
+### Fixed
+- Collection validation now correctly uses collection handles instead of numeric indices
+
 ## [1.0.4] - 2024-10-27
 
 ### Added
