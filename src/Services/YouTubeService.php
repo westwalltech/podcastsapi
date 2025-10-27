@@ -43,8 +43,8 @@ class YouTubeService
             // Add date filter if provided
             if ($publishDate) {
                 $date = new \DateTime($publishDate);
-                $startDate = $date->modify('-7 days')->format('Y-m-d\TH:i:s\Z');
-                $endDate = $date->modify('+14 days')->format('Y-m-d\TH:i:s\Z');
+                $startDate = (clone $date)->modify('-7 days')->format('Y-m-d\TH:i:s\Z');
+                $endDate = (clone $date)->modify('+7 days')->format('Y-m-d\TH:i:s\Z');
 
                 $params['publishedAfter'] = $startDate;
                 $params['publishedBefore'] = $endDate;
@@ -133,8 +133,8 @@ class YouTubeService
             // Add date filter if provided
             if ($publishDate) {
                 $date = new \DateTime($publishDate);
-                $startDate = $date->modify('-7 days')->format('Y-m-d\TH:i:s\Z');
-                $endDate = $date->modify('+14 days')->format('Y-m-d\TH:i:s\Z');
+                $startDate = (clone $date)->modify('-7 days')->format('Y-m-d\TH:i:s\Z');
+                $endDate = (clone $date)->modify('+7 days')->format('Y-m-d\TH:i:s\Z');
 
                 $params['publishedAfter'] = $startDate;
                 $params['publishedBefore'] = $endDate;
@@ -173,8 +173,72 @@ class YouTubeService
 
             return $results;
         } catch (\Exception $e) {
-            \Log::error('YouTube API Error: ' . $e->getMessage());
+            $errorMessage = $e->getMessage();
+            \Log::error('YouTube API Error: ' . $errorMessage);
+
+            // Check for specific error types
+            if (str_contains($errorMessage, '403')) {
+                \Log::error('YouTube API quota may be exceeded or API key lacks permissions');
+            } elseif (str_contains($errorMessage, '400')) {
+                \Log::error('YouTube API bad request - check channel ID and parameters');
+            }
+
+            // Return empty array - errors are logged for debugging
             return [];
+        }
+    }
+
+    /**
+     * Check if YouTube API is accessible
+     *
+     * @return array [success => bool, message => string]
+     */
+    public function testConnection(): array
+    {
+        try {
+            $response = $this->client->get('search', [
+                'query' => [
+                    'part' => 'snippet',
+                    'channelId' => $this->channelId,
+                    'q' => 'test',
+                    'type' => 'video',
+                    'maxResults' => 1,
+                    'key' => $this->apiKey,
+                ],
+            ]);
+
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode === 200) {
+                return [
+                    'success' => true,
+                    'message' => 'YouTube API connection successful'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => "YouTube API returned status code: {$statusCode}"
+            ];
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+
+            if (str_contains($message, '403')) {
+                return [
+                    'success' => false,
+                    'message' => 'YouTube API: Permission denied. Check API quota or key restrictions.'
+                ];
+            } elseif (str_contains($message, '400')) {
+                return [
+                    'success' => false,
+                    'message' => 'YouTube API: Bad request. Check channel ID configuration.'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => 'YouTube API Error: ' . $message
+            ];
         }
     }
 }
