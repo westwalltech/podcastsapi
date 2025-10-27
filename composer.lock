@@ -3007,11 +3007,11 @@
         },
         {
             "name": "newsong/podcast-link-finder",
-            "version": "1.0.0",
+            "version": "1.0.6",
             "dist": {
                 "type": "path",
                 "url": "addons/newsong/podcast-link-finder",
-                "reference": "3c96e9d77db52b25ee249f07c25a094ffd0fb3db"
+                "reference": "51e529ac7bf3051375e1e5a4dfceff1f6fadcf31"
             },
             "require": {
                 "guzzlehttp/guzzle": "^7.0",
@@ -3049,10 +3049,26 @@
             "authors": [
                 {
                     "name": "New Song Church",
-                    "email": "tech@newsongpeople.com"
+                    "email": "tech@newsongpeople.com",
+                    "homepage": "https://newsongchurch.org"
                 }
             ],
             "description": "Automatically find and link podcast episodes from Transistor to Spotify, Apple Podcasts, and YouTube",
+            "homepage": "https://github.com/newsong/podcast-link-finder",
+            "keywords": [
+                "addon",
+                "apple-podcasts",
+                "fieldtype",
+                "podcast",
+                "spotify",
+                "statamic",
+                "transistor",
+                "youtube"
+            ],
+            "support": {
+                "issues": "https://github.com/newsong/podcast-link-finder/issues",
+                "source": "https://github.com/newsong/podcast-link-finder"
+            },
             "transport-options": {
                 "relative": true
             }

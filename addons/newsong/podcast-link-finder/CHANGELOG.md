@@ -5,6 +5,103 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2024-10-27
+
+### Added
+- Automatic scheduled updates via Laravel scheduler with `php artisan podcast:auto-update` command
+- Auto-update features:
+  - Runs automatically every Tuesday at 8:00 AM (configurable)
+  - Checks only entries created/modified in last 7 days
+  - Searches only missing platforms (smart, efficient updates)
+  - Comprehensive logging to Laravel logs (no email notifications)
+  - Manual execution with `--force` flag option
+- Configuration options in `config/podcast-link-finder.php`:
+  - Enable/disable auto-update
+  - Configure collection and field handle
+  - Set days lookback (default: 7)
+  - Customize schedule day and time
+- Environment variable support:
+  - `PODCAST_AUTO_UPDATE_ENABLED`
+  - `PODCAST_AUTO_UPDATE_COLLECTION`
+  - `PODCAST_AUTO_UPDATE_FIELD`
+
+### Changed
+- YouTube search days updated to include both Sunday and Tuesday (was Sunday only)
+- ServiceProvider now registers scheduler task for auto-updates
+- Scheduler prevents overlapping executions and runs in background
+
+### Fixed
+- Statamic query builder date comparison issue - now filters entries by date in memory
+
+## [1.0.5] - 2024-10-27
+
+### Added
+- New artisan command `php artisan podcast:bulk-update` for batch updating podcast links across all entries in a collection
+- Bulk update features:
+  - Automatically matches existing entries to Transistor episodes by title
+  - Searches all platforms (Spotify, Apple Podcasts, YouTube) for each matched episode
+  - Updates podcast_links field with found URLs
+  - Progress bar with real-time status updates
+  - Comprehensive summary report (updated, skipped, errors, quota usage)
+- Command options:
+  - `--dry-run` - Preview changes without saving
+  - `--only-empty` - Only update entries without existing links
+  - `--force-youtube` - Search YouTube even on restricted days
+  - `--platforms` - Only search specific platforms
+  - `--limit` - Limit number of entries to process
+- Fuzzy matching algorithm to pair Statamic entries with Transistor episodes (60%+ similarity threshold)
+- Respects YouTube search day restrictions unless overridden with --force-youtube flag
+
+### Changed
+- ServiceProvider now registers BulkUpdateLinksCommand
+
+### Fixed
+- Collection validation now correctly uses collection handles instead of numeric indices
+
+## [1.0.4] - 2024-10-27
+
+### Added
+- Configurable search days restriction for YouTube to conserve API quota (defaults to Sundays only)
+- New artisan command `php artisan podcast:test-youtube` for diagnosing YouTube API issues
+- Detailed error logging that captures YouTube API error reasons (quotaExceeded, forbidden, etc.)
+- Helper methods `isSearchAllowedToday()` and `getSearchRestrictionMessage()` in YouTubeService
+
+### Changed
+- YouTube search now respects configured `search_days` to prevent quota exhaustion
+- Improved error messages to show specific YouTube API quota and permission issues
+- Better distinction between API errors and day restrictions in user-facing messages
+
+### Fixed
+- YouTube API quota management - can now restrict searches to specific days to stay within free tier limits
+
+## [1.0.3] - 2024-10-26
+
+### Changed
+- Updated platform logos to use official brand colors (YouTube red, Spotify green, Apple Podcasts purple)
+- Improved visual alignment of platform icons and text in Control Panel UI
+
+## [1.0.2] - 2024-10-26
+
+### Fixed
+- Fixed DateTime modification bug in YouTube date range calculation (was calculating wrong end date)
+- YouTube API errors now display helpful messages to users instead of silently failing
+- Added API connection testing to detect quota/permission issues
+
+### Changed
+- Date range for YouTube search now correctly uses ±7 days from publish date (was ±7/+7 due to bug)
+- Improved error handling across all platform searches
+- Added warning messages in UI when API calls fail
+
+### Added
+- YouTube API connection test method to diagnose authentication issues
+- Warning display for each platform when searches fail
+- Better logging for YouTube API errors (quota, permissions, bad requests)
+
+## [1.0.1] - 2024-10-26
+
+### Changed
+- Increased spacing between platform URL input fields in manual override section for better readability
+
 ## [1.0.0] - 2024-10-26
 
 ### Added

@@ -154,28 +154,46 @@ class PodcastSearchController
             'youtube' => [],
         ];
 
+        $warnings = [];
+
         try {
             $results['spotify'] = $this->spotify->searchAllMatches($title, $publishDate);
         } catch (\Exception $e) {
             \Log::warning("Failed to search Spotify: {$e->getMessage()}");
+            $warnings['spotify'] = 'Failed to search Spotify. Check API credentials.';
         }
 
         try {
             $results['apple_podcasts'] = $this->apple->searchAllMatches($title, $publishDate);
         } catch (\Exception $e) {
             \Log::warning("Failed to search Apple Podcasts: {$e->getMessage()}");
+            $warnings['apple_podcasts'] = 'Failed to search Apple Podcasts. Check API credentials.';
         }
 
-        try {
-            $results['youtube'] = $this->youtube->searchAllMatches($title, $publishDate);
-        } catch (\Exception $e) {
-            \Log::warning("Failed to search YouTube: {$e->getMessage()}");
+        // Check if YouTube search is allowed today
+        if (!$this->youtube->isSearchAllowedToday()) {
+            $warnings['youtube'] = $this->youtube->getSearchRestrictionMessage();
+        } else {
+            try {
+                $results['youtube'] = $this->youtube->searchAllMatches($title, $publishDate);
+                // If YouTube returns empty results, check if it's an API error
+                if (empty($results['youtube'])) {
+                    $youtubeStatus = $this->youtube->testConnection();
+                    if (!$youtubeStatus['success']) {
+                        $warnings['youtube'] = $youtubeStatus['message'];
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Failed to search YouTube: {$e->getMessage()}");
+                $warnings['youtube'] = 'Failed to search YouTube. ' . $e->getMessage();
+            }
         }
 
         return response()->json([
             'success' => true,
             'episode' => $episode,
             'results' => $results,
+            'warnings' => $warnings,
         ]);
     }
 }
