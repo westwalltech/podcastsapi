@@ -130,7 +130,29 @@ return [
 
 ### 1. Add to Blueprint
 
-Add the fieldtype to your collection blueprint (e.g., `resources/blueprints/collections/messages/message.yaml`):
+You have two options for adding the fieldtype to your blueprints:
+
+#### Option A: Use the Provided Fieldset (Recommended)
+
+Publish the included fieldset:
+
+```bash
+php please vendor:publish --tag=podcast-link-finder-fieldsets
+```
+
+Then import it in your blueprint:
+
+```yaml
+fields:
+  -
+    import: podcast-link-finder::podcast_episode
+```
+
+The fieldset will be available at `resources/fieldsets/vendor/podcast-link-finder/podcast_episode.yaml` and can be imported using the `podcast-link-finder::podcast_episode` handle.
+
+#### Option B: Add the Field Manually
+
+Add the fieldtype directly to your collection blueprint (e.g., `resources/blueprints/collections/messages/message.yaml`):
 
 ```yaml
 fields:
