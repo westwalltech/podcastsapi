@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2024-11-05
+
+### Added
+- Reusable fieldset that can be imported into any blueprint
+- `php please vendor:publish --tag=podcast-link-finder-fieldsets` command to publish fieldset
+- FIELDSET_USAGE.md documentation for using the fieldset
+- Simplified blueprint configuration using `import: podcast-link-finder::podcast_episode`
+
+### Changed
+- Updated README with fieldset usage instructions
+- Updated ServiceProvider to support fieldset publishing
+
 ## [1.0.6] - 2024-10-27
 
 ### Added

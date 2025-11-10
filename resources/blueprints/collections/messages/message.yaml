@@ -21,11 +21,4 @@ tabs:
               display: Date
               localizable: false
           -
-            handle: podcast_links
-            field:
-              type: podcast_link_finder
-              display: 'Find Episode Links'
-              instructions: 'Search for your episode from Transistor'
-              auto_find: true
-              allow_manual_override: true
-              localizable: false
+            import: podcast-link-finder::podcast_episode

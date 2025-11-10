@@ -1,0 +1,12 @@
+title: 'Podcast Episode'
+fields:
+  -
+    handle: podcast_links
+    field:
+      type: podcast_link_finder
+      display: 'Podcast Episode Links'
+      instructions: 'Search for your episode from Transistor and select platform links'
+      icon: podcast
+      listable: hidden
+      auto_find: true
+      allow_manual_override: true

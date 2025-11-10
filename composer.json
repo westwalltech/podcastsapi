@@ -13,6 +13,7 @@
         "php": "^8.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "newsong/bible-verse-finder": "*@dev",
         "newsong/podcast-link-finder": "*@dev",
         "statamic/cms": "^5.0"
     },
@@ -99,6 +100,10 @@
         {
             "type": "path",
             "url": "addons/newsong/podcast-link-finder"
+        },
+        {
+            "type": "path",
+            "url": "addons/bible-verse-finder"
         }
     ]
 }

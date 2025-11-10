@@ -1,0 +1,14 @@
+title: 'Daily Readings'
+template: default
+layout: layout
+revisions: false
+title_format: '{date format="l, F j Y"}'
+sort_dir: asc
+date_behavior:
+  past: public
+  future: private
+preview_targets:
+  -
+    label: Entry
+    url: '{permalink}'
+    refresh: true
