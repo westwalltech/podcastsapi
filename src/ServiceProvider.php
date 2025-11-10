@@ -36,6 +36,11 @@ class ServiceProvider extends AddonServiceProvider
     {
         // Config is automatically loaded from config/ directory
 
+        // Publish fieldsets
+        $this->publishes([
+            __DIR__.'/../resources/fieldsets' => resource_path('fieldsets/vendor/podcast-link-finder'),
+        ], 'podcast-link-finder-fieldsets');
+
         // Schedule auto-update task
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
