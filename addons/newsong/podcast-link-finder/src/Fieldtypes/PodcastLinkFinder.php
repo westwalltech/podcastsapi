@@ -3,6 +3,7 @@
 namespace NewSong\PodcastLinkFinder\Fieldtypes;
 
 use Statamic\Fields\Fieldtype;
+use GraphQL\Type\Definition\Type;
 
 class PodcastLinkFinder extends Fieldtype
 {
@@ -102,5 +103,15 @@ class PodcastLinkFinder extends Fieldtype
                 'default' => true,
             ],
         ];
+    }
+
+    /**
+     * Define the GraphQL type for this fieldtype
+     *
+     * @return \GraphQL\Type\Definition\Type
+     */
+    public function toGqlType()
+    {
+        return \GraphQL::type('PodcastLinks');
     }
 }

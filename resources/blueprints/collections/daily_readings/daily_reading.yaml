@@ -9,7 +9,7 @@ tabs:
             handle: title
             field:
               type: text
-              required: true
+              required: false
               validate:
                 - required
           -

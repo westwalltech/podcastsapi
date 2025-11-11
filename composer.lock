@@ -3009,11 +3009,11 @@
         },
         {
             "name": "newsong/bible-verse-finder",
-            "version": "1.0.0",
+            "version": "1.1.1",
             "dist": {
                 "type": "path",
                 "url": "addons/bible-verse-finder",
-                "reference": "f9ac9c20864aae77ca0618dd7c87c982c09d7968"
+                "reference": "36a5a3fe1b01d09220af87e7c96f35ffab353225"
             },
             "require": {
                 "guzzlehttp/guzzle": "^7.0",
@@ -3051,13 +3051,12 @@
             ],
             "authors": [
                 {
-                    "name": "New Song Church",
+                    "name": "NewSong Church",
                     "email": "tech@newsongpeople.com",
                     "homepage": "https://newsongchurch.org"
                 }
             ],
             "description": "A Statamic addon for selecting and fetching Bible verses from multiple versions using external APIs",
-            "homepage": "https://github.com/newsong/bible-verse-finder",
             "keywords": [
                 "addon",
                 "amp",
@@ -3071,10 +3070,6 @@
                 "statamic",
                 "verses"
             ],
-            "support": {
-                "issues": "https://github.com/newsong/bible-verse-finder/issues",
-                "source": "https://github.com/newsong/bible-verse-finder"
-            },
             "transport-options": {
                 "relative": true
             }

@@ -7,6 +7,8 @@ use NewSong\PodcastLinkFinder\Fieldtypes\PodcastLinkFinder;
 use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
 use NewSong\PodcastLinkFinder\Console\Commands\BulkUpdateLinksCommand;
 use NewSong\PodcastLinkFinder\Console\Commands\AutoUpdateLinksCommand;
+use NewSong\PodcastLinkFinder\GraphQL\PodcastLinksType;
+use NewSong\PodcastLinkFinder\GraphQL\PlatformLinkType;
 use Illuminate\Console\Scheduling\Schedule;
 
 class ServiceProvider extends AddonServiceProvider
@@ -35,6 +37,10 @@ class ServiceProvider extends AddonServiceProvider
     public function bootAddon()
     {
         // Config is automatically loaded from config/ directory
+
+        // Register GraphQL types
+        \GraphQL::addType(PlatformLinkType::class, 'PlatformLink');
+        \GraphQL::addType(PodcastLinksType::class, 'PodcastLinks');
 
         // Publish fieldsets
         $this->publishes([

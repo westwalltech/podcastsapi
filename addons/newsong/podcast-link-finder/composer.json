@@ -2,7 +2,7 @@
     "name": "newsong/podcast-link-finder",
     "description": "Automatically find and link podcast episodes from Transistor to Spotify, Apple Podcasts, and YouTube",
     "type": "statamic-addon",
-    "version": "1.0.7",
+    "version": "1.1.0",
     "license": "MIT",
     "keywords": [
         "statamic",
@@ -12,7 +12,8 @@
         "spotify",
         "apple-podcasts",
         "youtube",
-        "fieldtype"
+        "fieldtype",
+        "graphql"
     ],
     "homepage": "https://github.com/newsong/podcast-link-finder",
     "authors": [
