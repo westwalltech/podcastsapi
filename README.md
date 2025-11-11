@@ -15,6 +15,7 @@ A Statamic addon that automatically finds and links podcast episodes across mult
 - 🎨 **Beautiful UI** - Clean, production-ready interface integrated with Statamic's Control Panel
 - ⚡ **Auto-Find** - Optionally search platforms automatically when an episode is selected
 - 📅 **Date Proximity Scoring** - Boosts match scores for episodes published within 7 days
+- 🚀 **GraphQL Support** - Full GraphQL API for headless CMS and mobile app integrations
 
 ## Supported Platforms
 
@@ -212,6 +213,120 @@ Access the links in your Antlers templates:
 
   {{ has_any_links }}        # Boolean - true if any platform link exists
 {{ /podcast_links }}
+```
+
+## GraphQL API Usage
+
+The addon includes full GraphQL support for headless CMS and mobile app integrations.
+
+### GraphQL Schema
+
+```graphql
+type PodcastLinks {
+  episode_id: String
+  episode_title: String
+  spotify: PlatformLink
+  apple_podcasts: PlatformLink
+  youtube: PlatformLink
+  has_any_links: Boolean!
+}
+
+type PlatformLink {
+  url: String
+  has_link: Boolean!
+}
+```
+
+### Example Queries
+
+**Query a single entry:**
+
+```graphql
+query {
+  entry(id: "entry-id-here") {
+    ... on Entry_Messages_Message {
+      id
+      title
+      podcast_links {
+        episode_id
+        episode_title
+        spotify {
+          url
+          has_link
+        }
+        apple_podcasts {
+          url
+          has_link
+        }
+        youtube {
+          url
+          has_link
+        }
+        has_any_links
+      }
+    }
+  }
+}
+```
+
+**Query a collection:**
+
+```graphql
+query {
+  entries(collection: "messages", limit: 10) {
+    data {
+      ... on Entry_Messages_Message {
+        id
+        title
+        podcast_links {
+          episode_title
+          spotify {
+            url
+            has_link
+          }
+          apple_podcasts {
+            url
+            has_link
+          }
+          youtube {
+            url
+            has_link
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "entry": {
+      "id": "123",
+      "title": "Answer The Call - We Make Space",
+      "podcast_links": {
+        "episode_id": "2836688",
+        "episode_title": "Answer The Call - We Make Space",
+        "spotify": {
+          "url": "https://open.spotify.com/episode/6RnlzXMXyUXVGNgPnL7nTc",
+          "has_link": true
+        },
+        "apple_podcasts": {
+          "url": "https://podcasts.apple.com/podcast/id1039720149?i=1000676321763",
+          "has_link": true
+        },
+        "youtube": {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "has_link": true
+        },
+        "has_any_links": true
+      }
+    }
+  }
+}
 ```
 
 ## Fieldtype Options
