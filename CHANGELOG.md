@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-11
+
+### Added
+- **GraphQL Support** - Full GraphQL API integration for headless/mobile applications
+  - Added `PodcastLinksType` GraphQL type for structured podcast link data
+  - Added `PlatformLinkType` GraphQL type for individual platform links
+  - Podcast links now properly serialize as composite objects in GraphQL instead of strings
+  - Each platform link exposes `url` and `has_link` fields
+  - Root `podcast_links` field includes `episode_id`, `episode_title`, and `has_any_links` metadata
+- GraphQL types registered automatically via ServiceProvider
+- `toGqlType()` method in PodcastLinkFinder fieldtype for proper type definition
+
+### Changed
+- Updated ServiceProvider to register GraphQL types on boot
+- Added GraphQL keyword to composer.json for better discoverability
+
+### Technical Details
+- GraphQL types located in `src/GraphQL/` directory
+- Supports querying nested platform links with proper type safety
+- Compatible with Statamic's GraphQL API and third-party GraphQL clients
+
 ## [1.0.7] - 2024-11-05
 
 ### Added
