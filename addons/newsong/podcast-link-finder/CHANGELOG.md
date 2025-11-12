@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-11-12
+
+### Fixed
+- Fixed GraphQL type registration to properly use Statamic's GraphQL facade instead of global namespace
+- GraphQL types now correctly register and resolve as structured objects instead of strings
+- Updated ServiceProvider to import and use `Statamic\Facades\GraphQL`
+- Updated PodcastLinkFinder fieldtype to use Statamic's GraphQL facade
+- Removed unnecessary second parameter from `addType()` calls to let Statamic auto-discover type names
+
+### Technical Details
+- This fixes an issue where GraphQL queries would return "Field 'podcast_links' of type 'String' must not have a sub selection" error
+- The types are now properly registered and accessible via GraphQL queries
+- No breaking changes or configuration updates required
+
 ## [1.1.0] - 2025-11-11
 
 ### Added
