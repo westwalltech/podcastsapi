@@ -3,6 +3,7 @@
 namespace NewSong\PodcastLinkFinder;
 
 use Statamic\Providers\AddonServiceProvider;
+use Statamic\Facades\GraphQL;
 use NewSong\PodcastLinkFinder\Fieldtypes\PodcastLinkFinder;
 use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
 use NewSong\PodcastLinkFinder\Console\Commands\BulkUpdateLinksCommand;
@@ -39,8 +40,8 @@ class ServiceProvider extends AddonServiceProvider
         // Config is automatically loaded from config/ directory
 
         // Register GraphQL types
-        \GraphQL::addType(PlatformLinkType::class, 'PlatformLink');
-        \GraphQL::addType(PodcastLinksType::class, 'PodcastLinks');
+        GraphQL::addType(PlatformLinkType::class);
+        GraphQL::addType(PodcastLinksType::class);
 
         // Publish fieldsets
         $this->publishes([
