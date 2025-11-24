@@ -37,13 +37,19 @@ class PodcastSearchController
     public function searchEpisodes(Request $request): JsonResponse
     {
         $query = $request->input('query', '');
+        $status = $request->input('status', 'published');
+        $limit = (int) $request->input('limit', config('podcast-link-finder.search.max_results', 20));
+
+        // Clamp limit between 10 and 100
+        $limit = max(10, min(100, $limit));
+
+        // Allow 'all' as a special value to fetch all statuses
+        $statusFilter = $status === 'all' ? null : $status;
 
         if (empty($query)) {
-            $episodes = $this->transistor->getRecentEpisodes(
-                config('podcast-link-finder.search.max_results', 20)
-            );
+            $episodes = $this->transistor->getRecentEpisodes($limit, $statusFilter);
         } else {
-            $episodes = $this->transistor->searchEpisodes($query);
+            $episodes = $this->transistor->searchEpisodes($query, $statusFilter, $limit);
         }
 
         return response()->json([
@@ -170,8 +176,11 @@ class PodcastSearchController
             $warnings['apple_podcasts'] = 'Failed to search Apple Podcasts. Check API credentials.';
         }
 
-        // Check if YouTube search is allowed today
-        if (!$this->youtube->isSearchAllowedToday()) {
+        // Check if YouTube search is allowed today (can be forced via request)
+        $forceYouTube = $request->boolean('force_youtube', false);
+        $isSearchAllowed = $this->youtube->isSearchAllowedToday();
+
+        if (!$forceYouTube && !$isSearchAllowed) {
             $warnings['youtube'] = $this->youtube->getSearchRestrictionMessage();
         } else {
             try {

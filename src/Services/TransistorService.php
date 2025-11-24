@@ -4,6 +4,7 @@ namespace NewSong\PodcastLinkFinder\Services;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class TransistorService
 {
@@ -28,16 +29,22 @@ class TransistorService
      * Get recent episodes from Transistor
      *
      * @param int $limit
+     * @param string|null $status Filter by status: 'published', 'scheduled', 'draft', or null for all
      * @return Collection
      */
-    public function getRecentEpisodes(int $limit = 20): Collection
+    public function getRecentEpisodes(int $limit = 20, ?string $status = 'published'): Collection
     {
         try {
+            $query = [
+                'pagination[per]' => $limit,
+            ];
+
+            if ($status !== null) {
+                $query['status'] = $status;
+            }
+
             $response = $this->client->get('episodes', [
-                'query' => [
-                    'pagination[per]' => $limit,
-                    'status' => 'published',
-                ],
+                'query' => $query,
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
@@ -53,7 +60,7 @@ class TransistorService
                 ];
             });
         } catch (\Exception $e) {
-            \Log::error('Transistor API Error: ' . $e->getMessage());
+            Log::error('Transistor API Error: ' . $e->getMessage());
             return collect([]);
         }
     }
@@ -62,11 +69,13 @@ class TransistorService
      * Search episodes by title
      *
      * @param string $query
+     * @param string|null $status Filter by status: 'published', 'scheduled', 'draft', or null for all
+     * @param int $limit Maximum number of episodes to search through
      * @return Collection
      */
-    public function searchEpisodes(string $query): Collection
+    public function searchEpisodes(string $query, ?string $status = 'published', int $limit = 50): Collection
     {
-        $episodes = $this->getRecentEpisodes(50);
+        $episodes = $this->getRecentEpisodes($limit, $status);
 
         return $episodes->filter(function ($episode) use ($query) {
             return stripos($episode['title'], $query) !== false;
@@ -99,7 +108,7 @@ class TransistorService
 
             return null;
         } catch (\Exception $e) {
-            \Log::error('Transistor API Error: ' . $e->getMessage());
+            Log::error('Transistor API Error: ' . $e->getMessage());
             return null;
         }
     }
