@@ -3,6 +3,7 @@
 namespace NewSong\PodcastLinkFinder\Fieldtypes;
 
 use Statamic\Fields\Fieldtype;
+use Statamic\Facades\GraphQL;
 use Carbon\Carbon;
 
 class YouTubeLivestream extends Fieldtype
@@ -134,5 +135,15 @@ class YouTubeLivestream extends Fieldtype
                 'default' => 'air_date',
             ],
         ];
+    }
+
+    /**
+     * Define the GraphQL type for this fieldtype
+     *
+     * @return \GraphQL\Type\Definition\Type
+     */
+    public function toGqlType()
+    {
+        return GraphQL::type('PlatformLink');
     }
 }
