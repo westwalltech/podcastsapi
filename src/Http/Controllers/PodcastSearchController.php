@@ -184,7 +184,7 @@ class PodcastSearchController
             $warnings['youtube'] = $this->youtube->getSearchRestrictionMessage();
         } else {
             try {
-                $results['youtube'] = $this->youtube->searchAllMatches($title, $publishDate);
+                $results['youtube'] = $this->youtube->searchAllMatches($title, $publishDate, $forceYouTube);
                 // If YouTube returns empty results, check if it's an API error
                 if (empty($results['youtube'])) {
                     $youtubeStatus = $this->youtube->testConnection();

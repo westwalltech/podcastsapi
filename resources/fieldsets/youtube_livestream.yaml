@@ -1,0 +1,10 @@
+title: 'YouTube Livestream'
+fields:
+  -
+    handle: youtube_livestream
+    field:
+      type: you_tube_livestream
+      display: 'YouTube Livestream'
+      instructions: 'Fetch the scheduled YouTube livestream for this entry'
+      icon: video
+      listable: hidden

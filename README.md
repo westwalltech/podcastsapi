@@ -16,6 +16,7 @@ A Statamic addon that automatically finds and links podcast episodes across mult
 - ⚡ **Auto-Find** - Optionally search platforms automatically when an episode is selected
 - 📅 **Date Proximity Scoring** - Boosts match scores for episodes published within 7 days
 - 🚀 **GraphQL Support** - Full GraphQL API for headless CMS and mobile app integrations
+- 📺 **YouTube Livestream Auto-Fetch** - Automatically fetch scheduled livestream URLs for upcoming Sunday services
 
 ## Supported Platforms
 
@@ -573,6 +574,108 @@ composer test
 - YouTube has daily quota limits (10,000 units/day for free tier)
 - Each search costs 100 units
 - Consider caching results or upgrading quota
+
+## YouTube Livestream Auto-Fetch
+
+Automatically fetch scheduled YouTube livestream URLs for upcoming Sunday services. This feature matches entries by their `air_date` field and finds the corresponding scheduled livestream.
+
+### Features
+
+- **Scheduled Auto-Fetch** - Runs automatically on Sundays at 8:00 AM and 9:45 AM Central Time
+- **Manual Fetch Button** - Fetch livestream URL directly from the Control Panel
+- **Smart Matching** - Matches entries to livestreams by date
+- **URL Validation** - Checks if existing URLs are still valid before replacing
+- **Dark Mode Support** - Full dark mode UI integration
+
+### Configuration
+
+Add to your `.env` file:
+
+```env
+# Enable/disable livestream fetch
+YOUTUBE_LIVESTREAM_ENABLED=true
+
+# YouTube API credentials (if not already configured)
+YOUTUBE_API_KEY=your_youtube_api_key
+YOUTUBE_CHANNEL_ID=your_youtube_channel_id
+# OR use channel handle
+YOUTUBE_CHANNEL_HANDLE=@newsongchurchokc
+```
+
+Publish the config file for more options:
+
+```bash
+php please vendor:publish --tag=podcast-link-finder-youtube-livestream-config
+```
+
+Edit `config/youtube-livestream.php`:
+
+```php
+return [
+    'enabled' => env('YOUTUBE_LIVESTREAM_ENABLED', true),
+
+    // Schedule configuration
+    'schedule' => [
+        'times' => ['08:00', '09:45'],
+        'timezone' => 'America/Chicago',
+    ],
+
+    // Collection & field configuration
+    'collection' => 'messages',
+    'date_field' => 'air_date',
+    'url_field' => 'youtube_url',
+    'fetched_at_field' => 'youtube_fetched_at',
+
+    // Matching configuration
+    'matching' => [
+        'sunday_only' => true,
+        'prefer_earliest' => true,
+        'days_ahead' => 7,
+    ],
+
+    // Overwrite behavior
+    'overwrite' => [
+        'validate_existing' => true,
+        'replace_invalid' => true,
+        'preserve_valid' => true,
+    ],
+];
+```
+
+### Artisan Command
+
+Manually fetch livestream URLs:
+
+```bash
+# Fetch for next Sunday
+php artisan newsong:fetch-youtube-livestreams
+
+# Fetch for a specific date
+php artisan newsong:fetch-youtube-livestreams --date=2024-12-25
+
+# Preview without saving
+php artisan newsong:fetch-youtube-livestreams --dry-run
+
+# Force run even if disabled
+php artisan newsong:fetch-youtube-livestreams --force
+```
+
+### Control Panel Usage
+
+When editing an entry with an `air_date` set to an upcoming Sunday:
+
+1. The fieldtype will show a "Fetch YouTube Livestream" button
+2. Click to fetch the scheduled livestream URL
+3. The URL will be automatically saved to the entry
+
+### How It Works
+
+1. Checks the entry's `air_date` field
+2. Queries YouTube Data API for upcoming livestreams
+3. Matches livestream by scheduled start date (converted to configured timezone)
+4. If multiple livestreams are scheduled, picks the earliest one
+5. Validates existing URLs before replacing (preserves valid URLs)
+6. Updates the `youtube_url` field and tracks `youtube_fetched_at` timestamp
 
 ## Changelog
 

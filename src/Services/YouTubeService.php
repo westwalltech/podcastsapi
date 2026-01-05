@@ -155,47 +155,103 @@ class YouTubeService
     }
 
     /**
+     * Generate search query variations from a title
+     * This helps find videos even when titles differ between platforms
+     *
+     * @param string $title
+     * @return array
+     */
+    protected function generateSearchVariations(string $title): array
+    {
+        $variations = [$title];
+
+        // Split by common separators and get first part
+        $separators = [' - ', ' | ', ' // ', ': ', ' – '];
+        foreach ($separators as $sep) {
+            if (str_contains($title, $sep)) {
+                $parts = explode($sep, $title);
+                $firstPart = trim($parts[0]);
+                if (strlen($firstPart) >= 5 && !in_array($firstPart, $variations)) {
+                    $variations[] = $firstPart;
+                }
+                // Also try second part if it exists
+                if (isset($parts[1])) {
+                    $secondPart = trim($parts[1]);
+                    if (strlen($secondPart) >= 5 && !in_array($secondPart, $variations)) {
+                        $variations[] = $secondPart;
+                    }
+                }
+            }
+        }
+
+        // Extract first 3-4 significant words (skip common words)
+        $skipWords = ['the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'we', 'how', 'what', 'why', 'when', 'is', 'are'];
+        $words = preg_split('/\s+/', preg_replace('/[^\w\s]/', '', $title));
+        $significantWords = array_filter($words, fn($w) => strlen($w) > 2 && !in_array(strtolower($w), $skipWords));
+        $significantWords = array_values($significantWords);
+
+        if (count($significantWords) >= 2) {
+            $shortQuery = implode(' ', array_slice($significantWords, 0, 3));
+            if (!in_array($shortQuery, $variations)) {
+                $variations[] = $shortQuery;
+            }
+        }
+
+        // Limit to 3 variations to avoid excessive API calls
+        return array_slice($variations, 0, 3);
+    }
+
+    /**
      * Search for all matching videos and return them with scores
      *
      * @param string $title
      * @param string|null $publishDate
+     * @param bool $force Skip the day-of-week check
      * @return array
      */
-    public function searchAllMatches(string $title, ?string $publishDate = null): array
+    public function searchAllMatches(string $title, ?string $publishDate = null, bool $force = false): array
     {
-        // Check if search is allowed today
-        if (!$this->isSearchAllowedToday()) {
+        // Check if search is allowed today (unless forced)
+        if (!$force && !$this->isSearchAllowedToday()) {
             \Log::info('YouTube search skipped: Not an allowed search day');
             return [];
         }
 
         try {
-            $params = [
-                'part' => 'snippet',
-                'channelId' => $this->channelId,
-                'q' => $title,
-                'type' => 'video',
-                'maxResults' => 10,
-                'order' => 'date',
-                'key' => $this->apiKey,
-            ];
+            // Generate search variations to improve matching
+            $searchQueries = $this->generateSearchVariations($title);
+            $allVideos = [];
+            $seenIds = [];
 
-            // Add date filter if provided
-            if ($publishDate) {
-                $date = new \DateTime($publishDate);
-                $startDate = (clone $date)->modify('-7 days')->format('Y-m-d\TH:i:s\Z');
-                $endDate = (clone $date)->modify('+7 days')->format('Y-m-d\TH:i:s\Z');
+            foreach ($searchQueries as $query) {
+                $params = [
+                    'part' => 'snippet',
+                    'channelId' => $this->channelId,
+                    'q' => $query,
+                    'type' => 'video',
+                    'maxResults' => 15,
+                    'order' => 'relevance',
+                    'key' => $this->apiKey,
+                ];
 
-                $params['publishedAfter'] = $startDate;
-                $params['publishedBefore'] = $endDate;
+                $response = $this->client->get('search', [
+                    'query' => $params,
+                ]);
+
+                $data = json_decode($response->getBody()->getContents(), true);
+                $videos = $data['items'] ?? [];
+
+                // Add unique videos
+                foreach ($videos as $video) {
+                    $videoId = $video['id']['videoId'] ?? null;
+                    if ($videoId && !isset($seenIds[$videoId])) {
+                        $seenIds[$videoId] = true;
+                        $allVideos[] = $video;
+                    }
+                }
             }
 
-            $response = $this->client->get('search', [
-                'query' => $params,
-            ]);
-
-            $data = json_decode($response->getBody()->getContents(), true);
-            $videos = $data['items'] ?? [];
+            $videos = $allVideos;
 
             // Calculate scores for all videos
             $results = [];
@@ -203,7 +259,7 @@ class YouTubeService
                 $videoTitle = $video['snippet']['title'] ?? '';
                 $score = $this->calculateSimilarity($title, $videoTitle);
 
-                if ($score > 0.3) { // Lower threshold to show more options
+                if ($score > 0.15) { // Low threshold - YouTube API already filters by query
                     $videoId = $video['id']['videoId'];
                     $results[] = [
                         'url' => "https://www.youtube.com/watch?v={$videoId}",
