@@ -28,8 +28,8 @@
         "source": "https://github.com/newsong/podcast-link-finder"
     },
     "require": {
-        "php": "^8.1|^8.2|^8.3",
-        "statamic/cms": "^5.0",
+        "php": "^8.3|^8.4",
+        "statamic/cms": "^5.0|^6.0",
         "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
