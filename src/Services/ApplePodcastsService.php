@@ -29,27 +29,29 @@ class ApplePodcastsService
     public function findEpisodeByTitle(string $title, ?string $publishDate = null): ?string
     {
         try {
-            // Use iTunes Search API to find episodes
-            $response = $this->client->get('search', [
+            // Use Lookup API to get all episodes from the specific podcast
+            $response = $this->client->get('lookup', [
                 'query' => [
-                    'term' => $title,
+                    'id' => $this->showId,
                     'media' => 'podcast',
                     'entity' => 'podcastEpisode',
-                    'limit' => 50,
+                    'limit' => 200,
                 ],
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
-            $episodes = array_filter($data['results'] ?? [], function ($item) {
-                return ($item['collectionId'] ?? null) == $this->showId;
+            $allResults = $data['results'] ?? [];
+
+            // Filter to only episodes (first result is the podcast itself)
+            $episodes = array_filter($allResults, function ($item) {
+                return ($item['wrapperType'] ?? '') === 'podcastEpisode';
             });
 
             // Find best match
             $bestMatch = $this->findBestMatch($episodes, $title, $publishDate);
 
             if ($bestMatch) {
-                $episodeId = $bestMatch['trackId'];
-                return "https://podcasts.apple.com/us/podcast/new-song-church-okc/id{$this->showId}?i={$episodeId}";
+                return $bestMatch['trackViewUrl'] ?? null;
             }
 
             return null;
@@ -81,7 +83,11 @@ class ApplePodcastsService
                 $dateDiff = abs(strtotime($publishDate) - strtotime($episode['releaseDate']));
                 $daysDiff = $dateDiff / 86400;
 
-                if ($daysDiff <= 7) {
+                if ($daysDiff <= 1) {
+                    $score += 0.5;
+                } elseif ($daysDiff <= 3) {
+                    $score += 0.35;
+                } elseif ($daysDiff <= 7) {
                     $score += 0.2;
                 }
             }
@@ -96,7 +102,7 @@ class ApplePodcastsService
     }
 
     /**
-     * Calculate similarity between two strings
+     * Calculate similarity between two strings using multiple methods
      *
      * @param string $str1
      * @param string $str2
@@ -104,8 +110,30 @@ class ApplePodcastsService
      */
     protected function calculateSimilarity(string $str1, string $str2): float
     {
-        similar_text(strtolower($str1), strtolower($str2), $percent);
-        return $percent / 100;
+        $str1 = strtolower(trim($str1));
+        $str2 = strtolower(trim($str2));
+
+        // Method 1: similar_text (character-level)
+        similar_text($str1, $str2, $similarPercent);
+        $similarScore = $similarPercent / 100;
+
+        // Method 2: Word-level matching
+        $words1 = array_filter(preg_split('/[\s\-:,]+/', $str1));
+        $words2 = array_filter(preg_split('/[\s\-:,]+/', $str2));
+
+        $commonWords = array_intersect($words1, $words2);
+        $wordScore = count($words1) > 0
+            ? count($commonWords) / max(count($words1), count($words2))
+            : 0;
+
+        // Method 3: Check if one contains the other
+        $containsScore = 0;
+        if (str_contains($str2, $str1) || str_contains($str1, $str2)) {
+            $containsScore = 0.3;
+        }
+
+        // Combine scores (weight word matching higher)
+        return ($similarScore * 0.4) + ($wordScore * 0.5) + $containsScore;
     }
 
     /**
@@ -118,47 +146,57 @@ class ApplePodcastsService
     public function searchAllMatches(string $title, ?string $publishDate = null): array
     {
         try {
-            $response = $this->client->get('search', [
+            // Use Lookup API to get all episodes from the specific podcast
+            // This is more reliable than Search API which searches globally
+            $response = $this->client->get('lookup', [
                 'query' => [
-                    'term' => $title,
+                    'id' => $this->showId,
                     'media' => 'podcast',
                     'entity' => 'podcastEpisode',
-                    'limit' => 50,
+                    'limit' => 200,
                 ],
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
-            $allEpisodes = $data['results'] ?? [];
+            $allResults = $data['results'] ?? [];
 
-            // Filter by show ID and calculate scores
+            // First result is the podcast itself, rest are episodes
+            $episodes = array_filter($allResults, function ($item) {
+                return ($item['wrapperType'] ?? '') === 'podcastEpisode';
+            });
+
+            // Calculate scores for all episodes
             $results = [];
-            foreach ($allEpisodes as $episode) {
-                if (isset($episode['collectionId']) && $episode['collectionId'] == $this->showId) {
-                    $episodeTitle = $episode['trackName'] ?? '';
-                    $score = $this->calculateSimilarity($title, $episodeTitle);
+            foreach ($episodes as $episode) {
+                $episodeTitle = $episode['trackName'] ?? '';
+                $score = $this->calculateSimilarity($title, $episodeTitle);
 
-                    // Boost score if publish dates are close
-                    if ($publishDate && !empty($episode['releaseDate'])) {
-                        $targetDate = new \DateTime($publishDate);
-                        $episodeDate = new \DateTime($episode['releaseDate']);
-                        $daysDiff = abs($targetDate->diff($episodeDate)->days);
+                // Boost score if publish dates are close
+                if ($publishDate && !empty($episode['releaseDate'])) {
+                    $targetDate = new \DateTime($publishDate);
+                    $episodeDate = new \DateTime($episode['releaseDate']);
+                    $daysDiff = abs($targetDate->diff($episodeDate)->days);
 
-                        if ($daysDiff <= 7) {
-                            $score += 0.2;
-                        }
+                    // Strong boost for exact date match or very close
+                    if ($daysDiff <= 1) {
+                        $score += 0.5;
+                    } elseif ($daysDiff <= 3) {
+                        $score += 0.35;
+                    } elseif ($daysDiff <= 7) {
+                        $score += 0.2;
                     }
+                }
 
-                    if ($score > 0.3) { // Lower threshold to show more options
-                        $results[] = [
-                            'url' => $episode['trackViewUrl'] ?? '',
-                            'title' => $episodeTitle,
-                            'description' => $episode['description'] ?? '',
-                            'published_at' => $episode['releaseDate'] ?? '',
-                            'thumbnail' => $episode['artworkUrl60'] ?? '',
-                            'duration_ms' => ($episode['trackTimeMillis'] ?? 0),
-                            'score' => round($score * 100, 1),
-                        ];
-                    }
+                if ($score > 0.3) { // Lower threshold to show more options
+                    $results[] = [
+                        'url' => $episode['trackViewUrl'] ?? '',
+                        'title' => $episodeTitle,
+                        'description' => $episode['description'] ?? '',
+                        'published_at' => $episode['releaseDate'] ?? '',
+                        'thumbnail' => $episode['artworkUrl60'] ?? '',
+                        'duration_ms' => ($episode['trackTimeMillis'] ?? 0),
+                        'score' => round($score * 100, 1),
+                    ];
                 }
             }
 

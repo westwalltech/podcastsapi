@@ -114,7 +114,11 @@ class SpotifyService
                 $dateDiff = abs(strtotime($publishDate) - strtotime($episode['release_date']));
                 $daysDiff = $dateDiff / 86400; // Convert to days
 
-                if ($daysDiff <= 7) {
+                if ($daysDiff <= 1) {
+                    $score += 0.5;
+                } elseif ($daysDiff <= 3) {
+                    $score += 0.35;
+                } elseif ($daysDiff <= 7) {
                     $score += 0.2;
                 }
             }
@@ -129,7 +133,7 @@ class SpotifyService
     }
 
     /**
-     * Calculate similarity between two strings
+     * Calculate similarity between two strings using multiple methods
      *
      * @param string $str1
      * @param string $str2
@@ -137,8 +141,30 @@ class SpotifyService
      */
     protected function calculateSimilarity(string $str1, string $str2): float
     {
-        similar_text(strtolower($str1), strtolower($str2), $percent);
-        return $percent / 100;
+        $str1 = strtolower(trim($str1));
+        $str2 = strtolower(trim($str2));
+
+        // Method 1: similar_text (character-level)
+        similar_text($str1, $str2, $similarPercent);
+        $similarScore = $similarPercent / 100;
+
+        // Method 2: Word-level matching
+        $words1 = array_filter(preg_split('/[\s\-:,]+/', $str1));
+        $words2 = array_filter(preg_split('/[\s\-:,]+/', $str2));
+
+        $commonWords = array_intersect($words1, $words2);
+        $wordScore = count($words1) > 0
+            ? count($commonWords) / max(count($words1), count($words2))
+            : 0;
+
+        // Method 3: Check if one contains the other
+        $containsScore = 0;
+        if (str_contains($str2, $str1) || str_contains($str1, $str2)) {
+            $containsScore = 0.3;
+        }
+
+        // Combine scores (weight word matching higher)
+        return ($similarScore * 0.4) + ($wordScore * 0.5) + $containsScore;
     }
 
     /**
@@ -181,7 +207,12 @@ class SpotifyService
                     $episodeDate = new \DateTime($episode['release_date']);
                     $daysDiff = abs($targetDate->diff($episodeDate)->days);
 
-                    if ($daysDiff <= 7) {
+                    // Strong boost for exact date match or very close
+                    if ($daysDiff <= 1) {
+                        $score += 0.5;
+                    } elseif ($daysDiff <= 3) {
+                        $score += 0.35;
+                    } elseif ($daysDiff <= 7) {
                         $score += 0.2;
                     }
                 }
