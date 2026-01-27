@@ -4,6 +4,7 @@ namespace NewSong\PodcastLinkFinder;
 
 use Statamic\Providers\AddonServiceProvider;
 use Statamic\Facades\GraphQL;
+use Statamic\Facades\Permission;
 use NewSong\PodcastLinkFinder\Fieldtypes\PodcastLinkFinder;
 use NewSong\PodcastLinkFinder\Fieldtypes\YouTubeLivestream;
 use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
@@ -12,6 +13,7 @@ use NewSong\PodcastLinkFinder\Console\Commands\AutoUpdateLinksCommand;
 use NewSong\PodcastLinkFinder\Console\Commands\FetchYouTubeLivestreamsCommand;
 use NewSong\PodcastLinkFinder\GraphQL\PodcastLinksType;
 use NewSong\PodcastLinkFinder\GraphQL\PlatformLinkType;
+use NewSong\PodcastLinkFinder\Support\Logger;
 use Illuminate\Console\Scheduling\Schedule;
 
 class ServiceProvider extends AddonServiceProvider
@@ -52,11 +54,18 @@ class ServiceProvider extends AddonServiceProvider
 
     public function bootAddon()
     {
-        // Config is automatically loaded from config/ directory
-
         // Register GraphQL types
         GraphQL::addType(PlatformLinkType::class);
         GraphQL::addType(PodcastLinksType::class);
+
+        // Register permissions
+        $this->registerPermissions();
+
+        // Register logging channel
+        $this->registerLoggingChannel();
+
+        // Validate production configuration
+        $this->validateProductionConfig();
 
         // Publish fieldsets
         $this->publishes([
@@ -100,5 +109,67 @@ class ServiceProvider extends AddonServiceProvider
                 }
             }
         });
+    }
+
+    /**
+     * Register addon permissions.
+     */
+    protected function registerPermissions(): void
+    {
+        Permission::group('podcast-link-finder', 'Podcast Link Finder', function () {
+            Permission::register('access podcast link finder')
+                ->label('Access Podcast Link Finder');
+        });
+    }
+
+    /**
+     * Register the dedicated logging channel.
+     */
+    protected function registerLoggingChannel(): void
+    {
+        if (!config('podcast-link-finder.logging.enabled', true)) {
+            return;
+        }
+
+        $this->app['config']->set('logging.channels.podcast-link-finder', [
+            'driver' => 'daily',
+            'path' => storage_path('logs/podcast-link-finder.log'),
+            'level' => config('podcast-link-finder.logging.level', 'info'),
+            'days' => 14,
+        ]);
+    }
+
+    /**
+     * Validate configuration for production environments.
+     */
+    protected function validateProductionConfig(): void
+    {
+        if (!$this->app->environment('production')) {
+            return;
+        }
+
+        $warnings = [];
+
+        // Check Transistor API
+        if (empty(config('podcast-link-finder.transistor.api_key'))) {
+            $warnings[] = 'TRANSISTOR_API_KEY not set';
+        }
+
+        // Check Spotify API
+        if (empty(config('podcast-link-finder.spotify.client_id')) || empty(config('podcast-link-finder.spotify.client_secret'))) {
+            $warnings[] = 'Spotify API credentials (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET) not set';
+        }
+
+        // Check YouTube API
+        if (empty(config('podcast-link-finder.youtube.api_key'))) {
+            $warnings[] = 'YOUTUBE_API_KEY not set';
+        }
+
+        if (!empty($warnings)) {
+            Logger::warning('API credentials not fully configured', [
+                'missing' => $warnings,
+                'recommendation' => 'Set missing environment variables for full podcast link functionality.',
+            ]);
+        }
     }
 }
