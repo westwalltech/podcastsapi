@@ -26,14 +26,12 @@ class SpotifyService
 
     /**
      * Get access token (cached for 1 hour)
-     *
-     * @return string|null
      */
     protected function getAccessToken(): ?string
     {
         return Cache::remember('spotify_access_token', 3600, function () {
             try {
-                $client = new Client();
+                $client = new Client;
                 $response = $client->post('https://accounts.spotify.com/api/token', [
                     'form_params' => [
                         'grant_type' => 'client_credentials',
@@ -43,9 +41,11 @@ class SpotifyService
                 ]);
 
                 $data = json_decode($response->getBody()->getContents(), true);
+
                 return $data['access_token'] ?? null;
             } catch (\Exception $e) {
-                \Log::error('Spotify Auth Error: ' . $e->getMessage());
+                \Log::error('Spotify Auth Error: '.$e->getMessage());
+
                 return null;
             }
         });
@@ -54,14 +54,12 @@ class SpotifyService
     /**
      * Search for an episode by title
      *
-     * @param string $title
-     * @param string|null $publishDate
      * @return string|null Episode URL
      */
     public function findEpisodeByTitle(string $title, ?string $publishDate = null): ?string
     {
         $token = $this->getAccessToken();
-        if (!$token) {
+        if (! $token) {
             return null;
         }
 
@@ -88,18 +86,14 @@ class SpotifyService
 
             return null;
         } catch (\Exception $e) {
-            \Log::error('Spotify API Error: ' . $e->getMessage());
+            \Log::error('Spotify API Error: '.$e->getMessage());
+
             return null;
         }
     }
 
     /**
      * Find the best matching episode
-     *
-     * @param array $episodes
-     * @param string $title
-     * @param string|null $publishDate
-     * @return array|null
      */
     protected function findBestMatch(array $episodes, string $title, ?string $publishDate = null): ?array
     {
@@ -134,10 +128,6 @@ class SpotifyService
 
     /**
      * Calculate similarity between two strings using multiple methods
-     *
-     * @param string $str1
-     * @param string $str2
-     * @return float
      */
     protected function calculateSimilarity(string $str1, string $str2): float
     {
@@ -169,17 +159,13 @@ class SpotifyService
 
     /**
      * Search for all matching episodes and return them with scores
-     *
-     * @param string $title
-     * @param string|null $publishDate
-     * @return array
      */
     public function searchAllMatches(string $title, ?string $publishDate = null): array
     {
         try {
             $token = $this->getAccessToken();
 
-            if (!$token) {
+            if (! $token) {
                 return [];
             }
 
@@ -202,7 +188,7 @@ class SpotifyService
                 $score = $this->calculateSimilarity($title, $episodeTitle);
 
                 // Boost score if publish dates are close
-                if ($publishDate && !empty($episode['release_date'])) {
+                if ($publishDate && ! empty($episode['release_date'])) {
                     $targetDate = new \DateTime($publishDate);
                     $episodeDate = new \DateTime($episode['release_date']);
                     $daysDiff = abs($targetDate->diff($episodeDate)->days);
@@ -237,7 +223,8 @@ class SpotifyService
 
             return $results;
         } catch (\Exception $e) {
-            \Log::error('Spotify API Error: ' . $e->getMessage());
+            \Log::error('Spotify API Error: '.$e->getMessage());
+
             return [];
         }
     }

@@ -2,11 +2,11 @@
 
 namespace NewSong\PodcastLinkFinder\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Statamic\Facades\Entry;
 use NewSong\PodcastLinkFinder\Services\YouTubeLivestreamService;
-use Carbon\Carbon;
+use Statamic\Facades\Entry;
 
 class YouTubeLivestreamController
 {
@@ -19,15 +19,11 @@ class YouTubeLivestreamController
 
     /**
      * Fetch YouTube livestream for a specific entry
-     *
-     * @param Request $request
-     * @param string $entryId
-     * @return JsonResponse
      */
     public function fetch(Request $request, string $entryId): JsonResponse
     {
         // Check if feature is enabled
-        if (!config('youtube-livestream.enabled', true)) {
+        if (! config('youtube-livestream.enabled', true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'YouTube livestream fetch is disabled',
@@ -35,7 +31,7 @@ class YouTubeLivestreamController
         }
 
         // Check if service is configured
-        if (!$this->livestream->isConfigured()) {
+        if (! $this->livestream->isConfigured()) {
             return response()->json([
                 'success' => false,
                 'message' => 'YouTube API is not configured',
@@ -45,7 +41,7 @@ class YouTubeLivestreamController
         // Get the entry
         $entry = Entry::find($entryId);
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json([
                 'success' => false,
                 'message' => 'Entry not found',
@@ -56,7 +52,7 @@ class YouTubeLivestreamController
         $dateField = config('youtube-livestream.date_field', 'air_date');
         $airDate = $entry->get($dateField);
 
-        if (!$airDate) {
+        if (! $airDate) {
             return response()->json([
                 'success' => false,
                 'message' => "Entry does not have a {$dateField} field",
@@ -71,7 +67,7 @@ class YouTubeLivestreamController
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid date format in ' . $dateField,
+                'message' => 'Invalid date format in '.$dateField,
             ], 400);
         }
 
@@ -79,7 +75,7 @@ class YouTubeLivestreamController
         $urlField = config('youtube-livestream.url_field', 'youtube_url');
         $currentUrl = $entry->get($urlField);
 
-        if (!empty($currentUrl) && config('youtube-livestream.overwrite.validate_existing', true)) {
+        if (! empty($currentUrl) && config('youtube-livestream.overwrite.validate_existing', true)) {
             $isValid = $this->livestream->isValidLivestreamUrl($currentUrl);
 
             if ($isValid && config('youtube-livestream.overwrite.preserve_valid', true)) {
@@ -96,10 +92,10 @@ class YouTubeLivestreamController
         // Find livestream for the target date
         $livestreamData = $this->livestream->findLivestreamByDate($targetDate);
 
-        if (!$livestreamData) {
+        if (! $livestreamData) {
             return response()->json([
                 'success' => false,
-                'message' => 'No upcoming livestream found for ' . Carbon::parse($targetDate)->format('F j, Y'),
+                'message' => 'No upcoming livestream found for '.Carbon::parse($targetDate)->format('F j, Y'),
             ], 404);
         }
 
@@ -140,9 +136,6 @@ class YouTubeLivestreamController
 
     /**
      * Get upcoming livestreams (for preview/debugging)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function upcoming(Request $request): JsonResponse
     {
@@ -150,7 +143,7 @@ class YouTubeLivestreamController
             'limit' => 'nullable|integer|min:1|max:50',
         ]);
 
-        if (!$this->livestream->isConfigured()) {
+        if (! $this->livestream->isConfigured()) {
             return response()->json([
                 'success' => false,
                 'message' => 'YouTube API is not configured',
@@ -169,9 +162,6 @@ class YouTubeLivestreamController
 
     /**
      * Validate an existing YouTube URL
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function validateUrl(Request $request): JsonResponse
     {

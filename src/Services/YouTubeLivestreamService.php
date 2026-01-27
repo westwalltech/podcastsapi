@@ -2,8 +2,8 @@
 
 namespace NewSong\PodcastLinkFinder\Services;
 
-use GuzzleHttp\Client;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
 
 class YouTubeLivestreamService
 {
@@ -31,7 +31,7 @@ class YouTubeLivestreamService
         $channelId = config('youtube-livestream.channel_id') ?? config('podcast-link-finder.youtube.channel_id');
 
         // If we have a direct channel ID, use it
-        if ($channelId && !str_starts_with($channelId, '@')) {
+        if ($channelId && ! str_starts_with($channelId, '@')) {
             return $channelId;
         }
 
@@ -42,9 +42,6 @@ class YouTubeLivestreamService
 
     /**
      * Get upcoming/scheduled livestreams from the channel
-     *
-     * @param int $maxResults
-     * @return array
      */
     public function getUpcomingLivestreams(int $maxResults = 10): array
     {
@@ -70,7 +67,9 @@ class YouTubeLivestreamService
             $results = [];
             foreach ($videos as $video) {
                 $videoId = $video['id']['videoId'] ?? null;
-                if (!$videoId) continue;
+                if (! $videoId) {
+                    continue;
+                }
 
                 // Get video details for scheduled start time
                 $details = $this->getVideoDetails($videoId);
@@ -92,21 +91,20 @@ class YouTubeLivestreamService
             usort($results, function ($a, $b) {
                 $aTime = $a['scheduled_start'] ? strtotime($a['scheduled_start']) : PHP_INT_MAX;
                 $bTime = $b['scheduled_start'] ? strtotime($b['scheduled_start']) : PHP_INT_MAX;
+
                 return $aTime <=> $bTime;
             });
 
             return $results;
         } catch (\Exception $e) {
-            \Log::error('[YouTube Livestream] Failed to fetch upcoming livestreams: ' . $e->getMessage());
+            \Log::error('[YouTube Livestream] Failed to fetch upcoming livestreams: '.$e->getMessage());
+
             return [];
         }
     }
 
     /**
      * Get video details including scheduled start time
-     *
-     * @param string $videoId
-     * @return array
      */
     public function getVideoDetails(string $videoId): array
     {
@@ -122,7 +120,7 @@ class YouTubeLivestreamService
             $data = json_decode($response->getBody()->getContents(), true);
             $video = $data['items'][0] ?? null;
 
-            if (!$video) {
+            if (! $video) {
                 return [];
             }
 
@@ -136,7 +134,8 @@ class YouTubeLivestreamService
                 'privacy_status' => $video['status']['privacyStatus'] ?? 'public',
             ];
         } catch (\Exception $e) {
-            \Log::warning('[YouTube Livestream] Failed to get video details for ' . $videoId . ': ' . $e->getMessage());
+            \Log::warning('[YouTube Livestream] Failed to get video details for '.$videoId.': '.$e->getMessage());
+
             return [];
         }
     }
@@ -145,8 +144,7 @@ class YouTubeLivestreamService
      * Find a livestream by date
      * Returns the earliest livestream scheduled for the given date
      *
-     * @param string $date Date in Y-m-d format
-     * @return array|null
+     * @param  string  $date  Date in Y-m-d format
      */
     public function findLivestreamByDate(string $date): ?array
     {
@@ -157,7 +155,7 @@ class YouTubeLivestreamService
         $matchingStreams = [];
 
         foreach ($livestreams as $stream) {
-            if (!$stream['scheduled_start']) {
+            if (! $stream['scheduled_start']) {
                 continue;
             }
 
@@ -173,6 +171,7 @@ class YouTubeLivestreamService
 
         if (empty($matchingStreams)) {
             \Log::info("[YouTube Livestream] No livestream found for date: {$date}");
+
             return null;
         }
 
@@ -185,15 +184,12 @@ class YouTubeLivestreamService
 
     /**
      * Check if a YouTube URL is still valid and represents an upcoming/live stream
-     *
-     * @param string $url
-     * @return bool
      */
     public function isValidLivestreamUrl(string $url): bool
     {
         $videoId = $this->extractVideoId($url);
 
-        if (!$videoId) {
+        if (! $videoId) {
             return false;
         }
 
@@ -206,6 +202,7 @@ class YouTubeLivestreamService
         // Check if video is public
         if (($details['privacy_status'] ?? 'public') !== 'public') {
             \Log::info("[YouTube Livestream] Video {$videoId} is not public");
+
             return false;
         }
 
@@ -219,13 +216,14 @@ class YouTubeLivestreamService
         }
 
         // If it has actual_end time, the stream has ended
-        if (!empty($details['actual_end'])) {
+        if (! empty($details['actual_end'])) {
             \Log::info("[YouTube Livestream] Video {$videoId} stream has ended");
+
             return false;
         }
 
         // If it had a scheduled start but no live status, check if it's in the past
-        if (!empty($details['scheduled_start'])) {
+        if (! empty($details['scheduled_start'])) {
             $scheduledStart = Carbon::parse($details['scheduled_start']);
             $timezone = config('youtube-livestream.schedule.timezone', 'America/Chicago');
 
@@ -241,14 +239,12 @@ class YouTubeLivestreamService
         }
 
         \Log::info("[YouTube Livestream] Video {$videoId} is not a valid upcoming/live stream (status: {$liveStatus})");
+
         return false;
     }
 
     /**
      * Extract video ID from various YouTube URL formats
-     *
-     * @param string $url
-     * @return string|null
      */
     public function extractVideoId(string $url): ?string
     {
@@ -296,10 +292,10 @@ class YouTubeLivestreamService
 
             return [
                 'success' => false,
-                'message' => 'YouTube API returned status: ' . $response->getStatusCode(),
+                'message' => 'YouTube API returned status: '.$response->getStatusCode(),
             ];
         } catch (\Exception $e) {
-            \Log::error('[YouTube Livestream] API connection test failed: ' . $e->getMessage());
+            \Log::error('[YouTube Livestream] API connection test failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -310,11 +306,9 @@ class YouTubeLivestreamService
 
     /**
      * Check if the service is properly configured
-     *
-     * @return bool
      */
     public function isConfigured(): bool
     {
-        return !empty($this->apiKey) && !empty($this->channelId);
+        return ! empty($this->apiKey) && ! empty($this->channelId);
     }
 }

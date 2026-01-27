@@ -2,10 +2,10 @@
 
 namespace NewSong\PodcastLinkFinder\Console\Commands;
 
-use Illuminate\Console\Command;
-use Statamic\Facades\Entry;
-use NewSong\PodcastLinkFinder\Services\YouTubeLivestreamService;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use NewSong\PodcastLinkFinder\Services\YouTubeLivestreamService;
+use Statamic\Facades\Entry;
 
 class FetchYouTubeLivestreamsCommand extends Command
 {
@@ -33,16 +33,18 @@ class FetchYouTubeLivestreamsCommand extends Command
     public function handle(): int
     {
         // Check if enabled
-        if (!config('youtube-livestream.enabled', true) && !$this->option('force')) {
+        if (! config('youtube-livestream.enabled', true) && ! $this->option('force')) {
             $this->info('YouTube livestream fetch is disabled. Use --force to run anyway.');
             \Log::info('[YouTube Livestream Fetch] Skipped - feature is disabled');
+
             return Command::SUCCESS;
         }
 
         // Check if service is configured
-        if (!$this->livestream->isConfigured()) {
+        if (! $this->livestream->isConfigured()) {
             $this->error('YouTube API is not configured. Please set YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID.');
             \Log::error('[YouTube Livestream Fetch] Failed - API not configured');
+
             return Command::FAILURE;
         }
 
@@ -64,8 +66,9 @@ class FetchYouTubeLivestreamsCommand extends Command
         $entries = $this->getEntriesForDate($targetDate);
 
         if ($entries->isEmpty()) {
-            $this->info('No entries found for ' . $targetDate->format('Y-m-d'));
+            $this->info('No entries found for '.$targetDate->format('Y-m-d'));
             \Log::info('[YouTube Livestream Fetch] No entries found for date');
+
             return Command::SUCCESS;
         }
 
@@ -74,11 +77,12 @@ class FetchYouTubeLivestreamsCommand extends Command
         // Find livestream for the target date
         $livestream = $this->livestream->findLivestreamByDate($targetDate->format('Y-m-d'));
 
-        if (!$livestream) {
-            $this->warn('No upcoming livestream found for ' . $targetDate->format('Y-m-d'));
+        if (! $livestream) {
+            $this->warn('No upcoming livestream found for '.$targetDate->format('Y-m-d'));
             \Log::warning('[YouTube Livestream Fetch] No livestream found for date', [
                 'date' => $targetDate->format('Y-m-d'),
             ]);
+
             return Command::SUCCESS;
         }
 
@@ -127,13 +131,14 @@ class FetchYouTubeLivestreamsCommand extends Command
         return $entries->filter(function ($entry) use ($dateField, $targetDate, $timezone) {
             $airDate = $entry->get($dateField);
 
-            if (!$airDate) {
+            if (! $airDate) {
                 return false;
             }
 
             // Parse the air_date and compare
             try {
                 $entryDate = Carbon::parse($airDate, $timezone)->startOfDay();
+
                 return $entryDate->equalTo($targetDate->startOfDay());
             } catch (\Exception $e) {
                 return false;
@@ -164,7 +169,7 @@ class FetchYouTubeLivestreamsCommand extends Command
             // Check if existing URL is still valid
             $isValid = $this->livestream->isValidLivestreamUrl($currentUrl);
 
-            if (!$isValid && config('youtube-livestream.overwrite.replace_invalid', true)) {
+            if (! $isValid && config('youtube-livestream.overwrite.replace_invalid', true)) {
                 $shouldUpdate = true;
                 $reason = 'Existing URL is no longer valid';
             } elseif ($isValid && config('youtube-livestream.overwrite.preserve_valid', true)) {
@@ -173,7 +178,7 @@ class FetchYouTubeLivestreamsCommand extends Command
             }
         }
 
-        if (!$shouldUpdate) {
+        if (! $shouldUpdate) {
             $this->skipped++;
             $this->results[] = [
                 'title' => $entryTitle,
@@ -183,15 +188,16 @@ class FetchYouTubeLivestreamsCommand extends Command
             ];
 
             $this->line("  Skipped: {$entryTitle} - {$reason}");
-            \Log::info("[YouTube Livestream Fetch] Skipped", [
+            \Log::info('[YouTube Livestream Fetch] Skipped', [
                 'entry' => $entryTitle,
                 'reason' => $reason,
             ]);
+
             return;
         }
 
         // Update the entry
-        if (!$isDryRun) {
+        if (! $isDryRun) {
             try {
                 $entry->set($urlField, $livestream['url']);
                 $entry->set($fetchedAtField, Carbon::now()->toDateTimeString());
@@ -206,7 +212,7 @@ class FetchYouTubeLivestreamsCommand extends Command
                 ];
 
                 $this->info("  Updated: {$entryTitle}");
-                \Log::info("[YouTube Livestream Fetch] Updated", [
+                \Log::info('[YouTube Livestream Fetch] Updated', [
                     'entry' => $entryTitle,
                     'url' => $livestream['url'],
                     'reason' => $reason,
@@ -220,7 +226,7 @@ class FetchYouTubeLivestreamsCommand extends Command
                 ];
 
                 $this->error("  Error: {$entryTitle} - {$e->getMessage()}");
-                \Log::error("[YouTube Livestream Fetch] Error", [
+                \Log::error('[YouTube Livestream Fetch] Error', [
                     'entry' => $entryTitle,
                     'error' => $e->getMessage(),
                 ]);

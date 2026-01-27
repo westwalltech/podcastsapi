@@ -23,8 +23,6 @@ class YouTubeService
 
     /**
      * Check if YouTube search is allowed today based on configured search days
-     *
-     * @return bool
      */
     public function isSearchAllowedToday(): bool
     {
@@ -42,8 +40,6 @@ class YouTubeService
 
     /**
      * Get a friendly message about when YouTube search is available
-     *
-     * @return string|null
      */
     public function getSearchRestrictionMessage(): ?string
     {
@@ -62,14 +58,13 @@ class YouTubeService
         }
 
         $days = implode(', ', $allowedDays);
+
         return "YouTube search only available on: {$days}. Please enter URL manually.";
     }
 
     /**
      * Search for a video by title in the channel
      *
-     * @param string $title
-     * @param string|null $publishDate
      * @return string|null Video URL
      */
     public function findVideoByTitle(string $title, ?string $publishDate = null): ?string
@@ -106,22 +101,20 @@ class YouTubeService
 
             if ($bestMatch) {
                 $videoId = $bestMatch['id']['videoId'];
+
                 return "https://www.youtube.com/watch?v={$videoId}";
             }
 
             return null;
         } catch (\Exception $e) {
-            \Log::error('YouTube API Error: ' . $e->getMessage());
+            \Log::error('YouTube API Error: '.$e->getMessage());
+
             return null;
         }
     }
 
     /**
      * Find the best matching video
-     *
-     * @param array $videos
-     * @param string $title
-     * @return array|null
      */
     protected function findBestMatch(array $videos, string $title): ?array
     {
@@ -143,23 +136,17 @@ class YouTubeService
 
     /**
      * Calculate similarity between two strings
-     *
-     * @param string $str1
-     * @param string $str2
-     * @return float
      */
     protected function calculateSimilarity(string $str1, string $str2): float
     {
         similar_text(strtolower($str1), strtolower($str2), $percent);
+
         return $percent / 100;
     }
 
     /**
      * Generate search query variations from a title
      * This helps find videos even when titles differ between platforms
-     *
-     * @param string $title
-     * @return array
      */
     protected function generateSearchVariations(string $title): array
     {
@@ -171,13 +158,13 @@ class YouTubeService
             if (str_contains($title, $sep)) {
                 $parts = explode($sep, $title);
                 $firstPart = trim($parts[0]);
-                if (strlen($firstPart) >= 5 && !in_array($firstPart, $variations)) {
+                if (strlen($firstPart) >= 5 && ! in_array($firstPart, $variations)) {
                     $variations[] = $firstPart;
                 }
                 // Also try second part if it exists
                 if (isset($parts[1])) {
                     $secondPart = trim($parts[1]);
-                    if (strlen($secondPart) >= 5 && !in_array($secondPart, $variations)) {
+                    if (strlen($secondPart) >= 5 && ! in_array($secondPart, $variations)) {
                         $variations[] = $secondPart;
                     }
                 }
@@ -187,12 +174,12 @@ class YouTubeService
         // Extract first 3-4 significant words (skip common words)
         $skipWords = ['the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'we', 'how', 'what', 'why', 'when', 'is', 'are'];
         $words = preg_split('/\s+/', preg_replace('/[^\w\s]/', '', $title));
-        $significantWords = array_filter($words, fn($w) => strlen($w) > 2 && !in_array(strtolower($w), $skipWords));
+        $significantWords = array_filter($words, fn ($w) => strlen($w) > 2 && ! in_array(strtolower($w), $skipWords));
         $significantWords = array_values($significantWords);
 
         if (count($significantWords) >= 2) {
             $shortQuery = implode(' ', array_slice($significantWords, 0, 3));
-            if (!in_array($shortQuery, $variations)) {
+            if (! in_array($shortQuery, $variations)) {
                 $variations[] = $shortQuery;
             }
         }
@@ -204,16 +191,14 @@ class YouTubeService
     /**
      * Search for all matching videos and return them with scores
      *
-     * @param string $title
-     * @param string|null $publishDate
-     * @param bool $force Skip the day-of-week check
-     * @return array
+     * @param  bool  $force  Skip the day-of-week check
      */
     public function searchAllMatches(string $title, ?string $publishDate = null, bool $force = false): array
     {
         // Check if search is allowed today (unless forced)
-        if (!$force && !$this->isSearchAllowedToday()) {
+        if (! $force && ! $this->isSearchAllowedToday()) {
             \Log::info('YouTube search skipped: Not an allowed search day');
+
             return [];
         }
 
@@ -244,7 +229,7 @@ class YouTubeService
                 // Add unique videos
                 foreach ($videos as $video) {
                     $videoId = $video['id']['videoId'] ?? null;
-                    if ($videoId && !isset($seenIds[$videoId])) {
+                    if ($videoId && ! isset($seenIds[$videoId])) {
                         $seenIds[$videoId] = true;
                         $allVideos[] = $video;
                     }
@@ -280,7 +265,7 @@ class YouTubeService
             return $results;
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
-            \Log::error('YouTube API Error: ' . $errorMessage);
+            \Log::error('YouTube API Error: '.$errorMessage);
 
             // Try to get detailed error information from response
             if (method_exists($e, 'hasResponse') && $e->hasResponse()) {
@@ -337,13 +322,13 @@ class YouTubeService
             if ($statusCode === 200) {
                 return [
                     'success' => true,
-                    'message' => 'YouTube API connection successful'
+                    'message' => 'YouTube API connection successful',
                 ];
             }
 
             return [
                 'success' => false,
-                'message' => "YouTube API returned status code: {$statusCode}"
+                'message' => "YouTube API returned status code: {$statusCode}",
             ];
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -362,12 +347,12 @@ class YouTubeService
                     if ($reason === 'quotaExceeded') {
                         return [
                             'success' => false,
-                            'message' => 'YouTube API quota exceeded. Quotas reset at midnight Pacific Time. Check usage at: console.cloud.google.com'
+                            'message' => 'YouTube API quota exceeded. Quotas reset at midnight Pacific Time. Check usage at: console.cloud.google.com',
                         ];
                     } elseif ($reason === 'forbidden' || $reason === 'accessNotConfigured') {
                         return [
                             'success' => false,
-                            'message' => 'YouTube API not enabled or access forbidden. Enable the API in Google Cloud Console.'
+                            'message' => 'YouTube API not enabled or access forbidden. Enable the API in Google Cloud Console.',
                         ];
                     }
                 }
@@ -377,20 +362,20 @@ class YouTubeService
             if (str_contains($message, '403')) {
                 return [
                     'success' => false,
-                    'message' => 'YouTube API: Permission denied. Check API quota or key restrictions.'
+                    'message' => 'YouTube API: Permission denied. Check API quota or key restrictions.',
                 ];
             } elseif (str_contains($message, '400')) {
                 return [
                     'success' => false,
-                    'message' => 'YouTube API: Bad request. Check channel ID configuration.'
+                    'message' => 'YouTube API: Bad request. Check channel ID configuration.',
                 ];
             }
 
-            \Log::error('YouTube API Error: ' . $message);
+            \Log::error('YouTube API Error: '.$message);
 
             return [
                 'success' => false,
-                'message' => 'YouTube API connection failed. Please check the logs for details.'
+                'message' => 'YouTube API connection failed. Please check the logs for details.',
             ];
         }
     }

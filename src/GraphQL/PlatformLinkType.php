@@ -9,7 +9,7 @@ class PlatformLinkType extends GraphQLType
 {
     protected $attributes = [
         'name' => 'PlatformLink',
-        'description' => 'A link to a podcast episode on a specific platform'
+        'description' => 'A link to a podcast episode on a specific platform',
     ];
 
     public function fields(): array

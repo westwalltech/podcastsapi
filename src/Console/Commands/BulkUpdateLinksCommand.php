@@ -3,11 +3,11 @@
 namespace NewSong\PodcastLinkFinder\Console\Commands;
 
 use Illuminate\Console\Command;
-use Statamic\Facades\Entry;
-use NewSong\PodcastLinkFinder\Services\TransistorService;
-use NewSong\PodcastLinkFinder\Services\SpotifyService;
-use NewSong\PodcastLinkFinder\Services\YouTubeService;
 use NewSong\PodcastLinkFinder\Services\ApplePodcastsService;
+use NewSong\PodcastLinkFinder\Services\SpotifyService;
+use NewSong\PodcastLinkFinder\Services\TransistorService;
+use NewSong\PodcastLinkFinder\Services\YouTubeService;
+use Statamic\Facades\Entry;
 
 class BulkUpdateLinksCommand extends Command
 {
@@ -56,7 +56,7 @@ class BulkUpdateLinksCommand extends Command
         $limit = $this->option('limit');
 
         // Validate collection exists
-        if (!$this->validateCollection($collection)) {
+        if (! $this->validateCollection($collection)) {
             return Command::FAILURE;
         }
 
@@ -81,6 +81,7 @@ class BulkUpdateLinksCommand extends Command
         if ($onlyEmpty) {
             $entries = $entries->filter(function ($entry) use ($fieldHandle) {
                 $value = $entry->get($fieldHandle);
+
                 return empty($value) ||
                        (empty($value['spotify_link']) &&
                         empty($value['apple_podcasts_link']) &&
@@ -92,6 +93,7 @@ class BulkUpdateLinksCommand extends Command
 
         if ($total === 0) {
             $this->warn('No entries found to process');
+
             return Command::SUCCESS;
         }
 
@@ -101,12 +103,12 @@ class BulkUpdateLinksCommand extends Command
         // Fetch all Transistor episodes once
         $this->info('Fetching episodes from Transistor...');
         $transistorEpisodes = $this->transistor->getRecentEpisodes(500);
-        $this->info('Loaded ' . $transistorEpisodes->count() . ' episodes from Transistor');
+        $this->info('Loaded '.$transistorEpisodes->count().' episodes from Transistor');
         $this->newLine();
 
         // Check YouTube availability
         $youtubeAvailable = $forceYouTube || $this->youtube->isSearchAllowedToday();
-        if (!$youtubeAvailable && in_array('youtube', $searchPlatforms)) {
+        if (! $youtubeAvailable && in_array('youtube', $searchPlatforms)) {
             $this->warn('⚠️  YouTube search restricted (not Sunday). Use --force-youtube to override.');
             $this->newLine();
         }
@@ -136,7 +138,7 @@ class BulkUpdateLinksCommand extends Command
                 }
             } catch (\Exception $e) {
                 $this->errors++;
-                \Log::error("Bulk update error for entry {$entryTitle}: " . $e->getMessage());
+                \Log::error("Bulk update error for entry {$entryTitle}: ".$e->getMessage());
             }
 
             $bar->advance();
@@ -156,13 +158,14 @@ class BulkUpdateLinksCommand extends Command
     {
         $collections = \Statamic\Facades\Collection::all()->map->handle()->toArray();
 
-        if (!in_array($collection, $collections)) {
+        if (! in_array($collection, $collections)) {
             $this->error("Collection '{$collection}' not found.");
             $this->newLine();
             $this->line('Available collections:');
             foreach ($collections as $col) {
-                $this->line('  - ' . $col);
+                $this->line('  - '.$col);
             }
+
             return false;
         }
 
@@ -180,6 +183,7 @@ class BulkUpdateLinksCommand extends Command
 
         if (empty($filtered)) {
             $this->warn('No valid platforms specified. Using all platforms.');
+
             return $valid;
         }
 
@@ -195,7 +199,7 @@ class BulkUpdateLinksCommand extends Command
         // Find matching Transistor episode
         $matchedEpisode = $this->findMatchingEpisode($entryTitle, $transistorEpisodes);
 
-        if (!$matchedEpisode) {
+        if (! $matchedEpisode) {
             return ['updated' => false, 'youtube_searched' => false];
         }
 
@@ -211,7 +215,7 @@ class BulkUpdateLinksCommand extends Command
         if (in_array('spotify', $searchPlatforms) && empty($currentLinks['spotify_link'])) {
             try {
                 $results = $this->spotify->searchAllMatches($matchedEpisode['title'], $matchedEpisode['published_at']);
-                if (!empty($results)) {
+                if (! empty($results)) {
                     $newLinks['spotify_link'] = $results[0]['url'];
                     $updated = true;
                 }
@@ -223,7 +227,7 @@ class BulkUpdateLinksCommand extends Command
         if (in_array('apple', $searchPlatforms) && empty($currentLinks['apple_podcasts_link'])) {
             try {
                 $results = $this->apple->searchAllMatches($matchedEpisode['title'], $matchedEpisode['published_at']);
-                if (!empty($results)) {
+                if (! empty($results)) {
                     $newLinks['apple_podcasts_link'] = $results[0]['url'];
                     $updated = true;
                 }
@@ -236,7 +240,7 @@ class BulkUpdateLinksCommand extends Command
             try {
                 $results = $this->youtube->searchAllMatches($matchedEpisode['title'], $matchedEpisode['published_at']);
                 $youtubeSearched = true;
-                if (!empty($results)) {
+                if (! empty($results)) {
                     $newLinks['youtube_link'] = $results[0]['url'];
                     $updated = true;
                 }
@@ -246,7 +250,7 @@ class BulkUpdateLinksCommand extends Command
         }
 
         // Save if updated and not dry run
-        if ($updated && !$dryRun) {
+        if ($updated && ! $dryRun) {
             $entry->set($fieldHandle, $newLinks);
             $entry->save();
         }
@@ -274,21 +278,22 @@ class BulkUpdateLinksCommand extends Command
     protected function calculateSimilarity(string $str1, string $str2): float
     {
         similar_text(strtolower($str1), strtolower($str2), $percent);
+
         return $percent / 100;
     }
 
     protected function displaySummary(bool $dryRun): void
     {
         $this->info('Summary:');
-        $this->line('  ✓ ' . ($dryRun ? 'Would update: ' : 'Updated: ') . $this->updated . ' entries');
-        $this->line('  ⏭ Skipped: ' . $this->skipped . ' entries (no match)');
+        $this->line('  ✓ '.($dryRun ? 'Would update: ' : 'Updated: ').$this->updated.' entries');
+        $this->line('  ⏭ Skipped: '.$this->skipped.' entries (no match)');
 
         if ($this->errors > 0) {
-            $this->line('  ✗ Errors: ' . $this->errors . ' entries');
+            $this->line('  ✗ Errors: '.$this->errors.' entries');
         }
 
         $this->newLine();
-        $this->line('  📊 YouTube quota used: ' . $this->youtubeQuotaUsed . ' units');
+        $this->line('  📊 YouTube quota used: '.$this->youtubeQuotaUsed.' units');
 
         if ($dryRun) {
             $this->newLine();

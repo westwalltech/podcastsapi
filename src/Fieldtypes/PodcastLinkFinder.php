@@ -2,8 +2,8 @@
 
 namespace NewSong\PodcastLinkFinder\Fieldtypes;
 
-use Statamic\Fields\Fieldtype;
 use Statamic\Facades\GraphQL;
+use Statamic\Fields\Fieldtype;
 
 class PodcastLinkFinder extends Fieldtype
 {
@@ -30,7 +30,7 @@ class PodcastLinkFinder extends Fieldtype
     /**
      * Pre-process the data before it gets sent to the publish page
      *
-     * @param mixed $data
+     * @param  mixed  $data
      * @return array
      */
     public function preProcess($data)
@@ -41,7 +41,7 @@ class PodcastLinkFinder extends Fieldtype
     /**
      * Process the data before it gets saved
      *
-     * @param mixed $data
+     * @param  mixed  $data
      * @return array
      */
     public function process($data)
@@ -52,12 +52,12 @@ class PodcastLinkFinder extends Fieldtype
     /**
      * Augment the value for use in templates
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return array
      */
     public function augment($value)
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return $this->defaultValue();
         }
 
@@ -66,26 +66,24 @@ class PodcastLinkFinder extends Fieldtype
             'episode_title' => $value['episode_title'] ?? null,
             'spotify' => [
                 'url' => $value['spotify_link'] ?? null,
-                'has_link' => !empty($value['spotify_link']),
+                'has_link' => ! empty($value['spotify_link']),
             ],
             'apple_podcasts' => [
                 'url' => $value['apple_podcasts_link'] ?? null,
-                'has_link' => !empty($value['apple_podcasts_link']),
+                'has_link' => ! empty($value['apple_podcasts_link']),
             ],
             'youtube' => [
                 'url' => $value['youtube_link'] ?? null,
-                'has_link' => !empty($value['youtube_link']),
+                'has_link' => ! empty($value['youtube_link']),
             ],
-            'has_any_links' => !empty($value['spotify_link']) ||
-                              !empty($value['apple_podcasts_link']) ||
-                              !empty($value['youtube_link']),
+            'has_any_links' => ! empty($value['spotify_link']) ||
+                              ! empty($value['apple_podcasts_link']) ||
+                              ! empty($value['youtube_link']),
         ];
     }
 
     /**
      * Define the fieldtype config blueprint
-     *
-     * @return array
      */
     public function configFieldItems(): array
     {

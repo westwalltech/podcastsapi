@@ -4,10 +4,10 @@ namespace NewSong\PodcastLinkFinder\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use NewSong\PodcastLinkFinder\Services\TransistorService;
-use NewSong\PodcastLinkFinder\Services\SpotifyService;
-use NewSong\PodcastLinkFinder\Services\YouTubeService;
 use NewSong\PodcastLinkFinder\Services\ApplePodcastsService;
+use NewSong\PodcastLinkFinder\Services\SpotifyService;
+use NewSong\PodcastLinkFinder\Services\TransistorService;
+use NewSong\PodcastLinkFinder\Services\YouTubeService;
 
 class PodcastSearchController
 {
@@ -30,9 +30,6 @@ class PodcastSearchController
 
     /**
      * Search for episodes in Transistor
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function searchEpisodes(Request $request): JsonResponse
     {
@@ -63,9 +60,6 @@ class PodcastSearchController
 
     /**
      * Find links across all platforms for a selected episode
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function findLinks(Request $request): JsonResponse
     {
@@ -78,7 +72,7 @@ class PodcastSearchController
         // Get the episode details from Transistor
         $episode = $this->transistor->getEpisode($episodeId);
 
-        if (!$episode) {
+        if (! $episode) {
             return response()->json([
                 'success' => false,
                 'message' => 'Episode not found',
@@ -125,9 +119,6 @@ class PodcastSearchController
 
     /**
      * Search for all matching content across platforms
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function searchPlatforms(Request $request): JsonResponse
     {
@@ -141,7 +132,7 @@ class PodcastSearchController
         // Get the episode details from Transistor
         $episode = $this->transistor->getEpisode($episodeId);
 
-        if (!$episode) {
+        if (! $episode) {
             return response()->json([
                 'success' => false,
                 'message' => 'Episode not found',
@@ -178,7 +169,7 @@ class PodcastSearchController
         $forceYouTube = $validated['force_youtube'] ?? false;
         $isSearchAllowed = $this->youtube->isSearchAllowedToday();
 
-        if (!$forceYouTube && !$isSearchAllowed) {
+        if (! $forceYouTube && ! $isSearchAllowed) {
             $warnings['youtube'] = $this->youtube->getSearchRestrictionMessage();
         } else {
             try {
@@ -186,7 +177,7 @@ class PodcastSearchController
                 // If YouTube returns empty results, check if it's an API error
                 if (empty($results['youtube'])) {
                     $youtubeStatus = $this->youtube->testConnection();
-                    if (!$youtubeStatus['success']) {
+                    if (! $youtubeStatus['success']) {
                         $warnings['youtube'] = $youtubeStatus['message'];
                     }
                 }

@@ -28,9 +28,7 @@ class TransistorService
     /**
      * Get recent episodes from Transistor
      *
-     * @param int $limit
-     * @param string|null $status Filter by status: 'published', 'scheduled', 'draft', or null for all
-     * @return Collection
+     * @param  string|null  $status  Filter by status: 'published', 'scheduled', 'draft', or null for all
      */
     public function getRecentEpisodes(int $limit = 20, ?string $status = 'published'): Collection
     {
@@ -60,7 +58,8 @@ class TransistorService
                 ];
             });
         } catch (\Exception $e) {
-            Log::error('Transistor API Error: ' . $e->getMessage());
+            Log::error('Transistor API Error: '.$e->getMessage());
+
             return collect([]);
         }
     }
@@ -68,10 +67,8 @@ class TransistorService
     /**
      * Search episodes by title
      *
-     * @param string $query
-     * @param string|null $status Filter by status: 'published', 'scheduled', 'draft', or null for all
-     * @param int $limit Maximum number of episodes to search through
-     * @return Collection
+     * @param  string|null  $status  Filter by status: 'published', 'scheduled', 'draft', or null for all
+     * @param  int  $limit  Maximum number of episodes to search through
      */
     public function searchEpisodes(string $query, ?string $status = 'published', int $limit = 50): Collection
     {
@@ -84,9 +81,6 @@ class TransistorService
 
     /**
      * Get a specific episode by ID
-     *
-     * @param string $episodeId
-     * @return array|null
      */
     public function getEpisode(string $episodeId): ?array
     {
@@ -96,6 +90,7 @@ class TransistorService
 
             if (isset($data['data'])) {
                 $episode = $data['data'];
+
                 return [
                     'id' => $episode['id'],
                     'title' => $episode['attributes']['title'],
@@ -108,7 +103,8 @@ class TransistorService
 
             return null;
         } catch (\Exception $e) {
-            Log::error('Transistor API Error: ' . $e->getMessage());
+            Log::error('Transistor API Error: '.$e->getMessage());
+
             return null;
         }
     }

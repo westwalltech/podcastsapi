@@ -2,9 +2,9 @@
 
 namespace NewSong\PodcastLinkFinder\Fieldtypes;
 
-use Statamic\Fields\Fieldtype;
-use Statamic\Facades\GraphQL;
 use Carbon\Carbon;
+use Statamic\Facades\GraphQL;
+use Statamic\Fields\Fieldtype;
 
 class YouTubeLivestream extends Fieldtype
 {
@@ -25,7 +25,7 @@ class YouTubeLivestream extends Fieldtype
     /**
      * Pre-process the data before it gets sent to the publish page
      *
-     * @param mixed $data
+     * @param  mixed  $data
      * @return string|null
      */
     public function preProcess($data)
@@ -36,7 +36,7 @@ class YouTubeLivestream extends Fieldtype
     /**
      * Process the data before it gets saved
      *
-     * @param mixed $data
+     * @param  mixed  $data
      * @return string|null
      */
     public function process($data)
@@ -47,14 +47,14 @@ class YouTubeLivestream extends Fieldtype
     /**
      * Augment the value for use in templates
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return array
      */
     public function augment($value)
     {
         return [
             'url' => $value,
-            'has_link' => !empty($value),
+            'has_link' => ! empty($value),
         ];
     }
 
@@ -87,6 +87,7 @@ class YouTubeLivestream extends Fieldtype
                 // Determine if we should show the fetch button
                 if ($airDate && config('youtube-livestream.enabled', true)) {
                     $timezone = config('youtube-livestream.schedule.timezone', 'America/Chicago');
+
                     try {
                         // Handle Carbon objects or strings
                         if ($airDate instanceof Carbon) {
@@ -122,8 +123,6 @@ class YouTubeLivestream extends Fieldtype
 
     /**
      * Define the fieldtype config blueprint
-     *
-     * @return array
      */
     public function configFieldItems(): array
     {

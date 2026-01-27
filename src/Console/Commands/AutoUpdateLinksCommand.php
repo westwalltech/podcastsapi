@@ -3,12 +3,12 @@
 namespace NewSong\PodcastLinkFinder\Console\Commands;
 
 use Illuminate\Console\Command;
-use Statamic\Facades\Entry;
-use NewSong\PodcastLinkFinder\Services\TransistorService;
-use NewSong\PodcastLinkFinder\Services\SpotifyService;
-use NewSong\PodcastLinkFinder\Services\YouTubeService;
-use NewSong\PodcastLinkFinder\Services\ApplePodcastsService;
 use Illuminate\Support\Carbon;
+use NewSong\PodcastLinkFinder\Services\ApplePodcastsService;
+use NewSong\PodcastLinkFinder\Services\SpotifyService;
+use NewSong\PodcastLinkFinder\Services\TransistorService;
+use NewSong\PodcastLinkFinder\Services\YouTubeService;
+use Statamic\Facades\Entry;
 
 class AutoUpdateLinksCommand extends Command
 {
@@ -43,8 +43,9 @@ class AutoUpdateLinksCommand extends Command
     public function handle()
     {
         // Check if auto-update is enabled
-        if (!config('podcast-link-finder.auto_update.enabled') && !$this->option('force')) {
+        if (! config('podcast-link-finder.auto_update.enabled') && ! $this->option('force')) {
             \Log::info('Podcast auto-update is disabled. Use --force to run anyway.');
+
             return Command::SUCCESS;
         }
 
@@ -52,7 +53,7 @@ class AutoUpdateLinksCommand extends Command
         $fieldHandle = config('podcast-link-finder.auto_update.field');
         $daysLookback = config('podcast-link-finder.auto_update.days_lookback', 7);
 
-        \Log::info("Podcast auto-update started", [
+        \Log::info('Podcast auto-update started', [
             'collection' => $collection,
             'days_lookback' => $daysLookback,
         ]);
@@ -77,6 +78,7 @@ class AutoUpdateLinksCommand extends Command
 
         if ($total === 0) {
             \Log::info("No entries found from last {$daysLookback} days");
+
             return Command::SUCCESS;
         }
 
@@ -84,7 +86,7 @@ class AutoUpdateLinksCommand extends Command
 
         // Fetch all Transistor episodes once
         $transistorEpisodes = $this->transistor->getRecentEpisodes(500);
-        \Log::info('Loaded ' . $transistorEpisodes->count() . ' episodes from Transistor');
+        \Log::info('Loaded '.$transistorEpisodes->count().' episodes from Transistor');
 
         // Process each entry
         foreach ($entries as $entry) {
@@ -102,11 +104,11 @@ class AutoUpdateLinksCommand extends Command
                     ];
 
                     \Log::info("Updated: {$entryTitle}", [
-                        'added_platforms' => implode(', ', $result['platforms_added'])
+                        'added_platforms' => implode(', ', $result['platforms_added']),
                     ]);
                 } else {
                     $this->skipped++;
-                    \Log::info("Skipped: {$entryTitle} - " . $result['reason']);
+                    \Log::info("Skipped: {$entryTitle} - ".$result['reason']);
                 }
 
                 if ($result['youtube_searched']) {
@@ -114,7 +116,7 @@ class AutoUpdateLinksCommand extends Command
                 }
             } catch (\Exception $e) {
                 $this->errors++;
-                \Log::error("Error processing {$entryTitle}: " . $e->getMessage());
+                \Log::error("Error processing {$entryTitle}: ".$e->getMessage());
             }
         }
 
@@ -134,12 +136,12 @@ class AutoUpdateLinksCommand extends Command
         // Find matching Transistor episode
         $matchedEpisode = $this->findMatchingEpisode($entryTitle, $transistorEpisodes);
 
-        if (!$matchedEpisode) {
+        if (! $matchedEpisode) {
             return [
                 'updated' => false,
                 'youtube_searched' => false,
                 'platforms_added' => [],
-                'reason' => 'No matching Transistor episode found'
+                'reason' => 'No matching Transistor episode found',
             ];
         }
 
@@ -155,7 +157,7 @@ class AutoUpdateLinksCommand extends Command
         if (empty($currentLinks['spotify_link'])) {
             try {
                 $results = $this->spotify->searchAllMatches($matchedEpisode['title'], $matchedEpisode['published_at']);
-                if (!empty($results)) {
+                if (! empty($results)) {
                     $newLinks['spotify_link'] = $results[0]['url'];
                     $platformsAdded[] = 'Spotify';
                     $updated = true;
@@ -168,7 +170,7 @@ class AutoUpdateLinksCommand extends Command
         if (empty($currentLinks['apple_podcasts_link'])) {
             try {
                 $results = $this->apple->searchAllMatches($matchedEpisode['title'], $matchedEpisode['published_at']);
-                if (!empty($results)) {
+                if (! empty($results)) {
                     $newLinks['apple_podcasts_link'] = $results[0]['url'];
                     $platformsAdded[] = 'Apple Podcasts';
                     $updated = true;
@@ -182,7 +184,7 @@ class AutoUpdateLinksCommand extends Command
             try {
                 $results = $this->youtube->searchAllMatches($matchedEpisode['title'], $matchedEpisode['published_at']);
                 $youtubeSearched = true;
-                if (!empty($results)) {
+                if (! empty($results)) {
                     $newLinks['youtube_link'] = $results[0]['url'];
                     $platformsAdded[] = 'YouTube';
                     $updated = true;
@@ -202,7 +204,7 @@ class AutoUpdateLinksCommand extends Command
             'updated' => $updated,
             'youtube_searched' => $youtubeSearched,
             'platforms_added' => $platformsAdded,
-            'reason' => $updated ? 'Updated' : 'All platforms already present'
+            'reason' => $updated ? 'Updated' : 'All platforms already present',
         ];
     }
 
@@ -226,6 +228,7 @@ class AutoUpdateLinksCommand extends Command
     protected function calculateSimilarity(string $str1, string $str2): float
     {
         similar_text(strtolower($str1), strtolower($str2), $percent);
+
         return $percent / 100;
     }
 
@@ -239,7 +242,7 @@ class AutoUpdateLinksCommand extends Command
             'youtube_quota_used' => $this->youtubeQuotaUsed,
         ]);
 
-        if (!empty($this->updatedEntries)) {
+        if (! empty($this->updatedEntries)) {
             \Log::info('Updated entries:', $this->updatedEntries);
         }
 

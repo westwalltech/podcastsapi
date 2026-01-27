@@ -9,7 +9,7 @@ class PodcastLinksType extends GraphQLType
 {
     protected $attributes = [
         'name' => 'PodcastLinks',
-        'description' => 'Links to a podcast episode across multiple platforms'
+        'description' => 'Links to a podcast episode across multiple platforms',
     ];
 
     public function fields(): array

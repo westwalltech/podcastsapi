@@ -22,8 +22,6 @@ class ApplePodcastsService
     /**
      * Search for an episode by title
      *
-     * @param string $title
-     * @param string|null $publishDate
      * @return string|null Episode URL
      */
     public function findEpisodeByTitle(string $title, ?string $publishDate = null): ?string
@@ -56,18 +54,14 @@ class ApplePodcastsService
 
             return null;
         } catch (\Exception $e) {
-            \Log::error('Apple Podcasts API Error: ' . $e->getMessage());
+            \Log::error('Apple Podcasts API Error: '.$e->getMessage());
+
             return null;
         }
     }
 
     /**
      * Find the best matching episode
-     *
-     * @param array $episodes
-     * @param string $title
-     * @param string|null $publishDate
-     * @return array|null
      */
     protected function findBestMatch(array $episodes, string $title, ?string $publishDate = null): ?array
     {
@@ -103,10 +97,6 @@ class ApplePodcastsService
 
     /**
      * Calculate similarity between two strings using multiple methods
-     *
-     * @param string $str1
-     * @param string $str2
-     * @return float
      */
     protected function calculateSimilarity(string $str1, string $str2): float
     {
@@ -138,10 +128,6 @@ class ApplePodcastsService
 
     /**
      * Search for all matching episodes and return them with scores
-     *
-     * @param string $title
-     * @param string|null $publishDate
-     * @return array
      */
     public function searchAllMatches(string $title, ?string $publishDate = null): array
     {
@@ -172,7 +158,7 @@ class ApplePodcastsService
                 $score = $this->calculateSimilarity($title, $episodeTitle);
 
                 // Boost score if publish dates are close
-                if ($publishDate && !empty($episode['releaseDate'])) {
+                if ($publishDate && ! empty($episode['releaseDate'])) {
                     $targetDate = new \DateTime($publishDate);
                     $episodeDate = new \DateTime($episode['releaseDate']);
                     $daysDiff = abs($targetDate->diff($episodeDate)->days);
@@ -207,7 +193,8 @@ class ApplePodcastsService
 
             return $results;
         } catch (\Exception $e) {
-            \Log::error('Apple Podcasts API Error: ' . $e->getMessage());
+            \Log::error('Apple Podcasts API Error: '.$e->getMessage());
+
             return [];
         }
     }

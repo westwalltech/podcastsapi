@@ -7,7 +7,7 @@ describe('isSearchAllowedToday', function () {
     it('allows search when no days are configured', function () {
         Config::set('podcast-link-finder.youtube.search_days', []);
 
-        $service = new YouTubeService();
+        $service = new YouTubeService;
         expect($service->isSearchAllowedToday())->toBeTrue();
     });
 
@@ -15,7 +15,7 @@ describe('isSearchAllowedToday', function () {
         $today = now()->format('l'); // e.g., 'Sunday'
         Config::set('podcast-link-finder.youtube.search_days', [$today]);
 
-        $service = new YouTubeService();
+        $service = new YouTubeService;
         expect($service->isSearchAllowedToday())->toBeTrue();
     });
 
@@ -24,7 +24,7 @@ describe('isSearchAllowedToday', function () {
         $notToday = now()->addDay()->format('l');
         Config::set('podcast-link-finder.youtube.search_days', [$notToday]);
 
-        $service = new YouTubeService();
+        $service = new YouTubeService;
         expect($service->isSearchAllowedToday())->toBeFalse();
     });
 });
@@ -33,7 +33,7 @@ describe('getSearchRestrictionMessage', function () {
     it('returns null when search is allowed', function () {
         Config::set('podcast-link-finder.youtube.search_days', []);
 
-        $service = new YouTubeService();
+        $service = new YouTubeService;
         expect($service->getSearchRestrictionMessage())->toBeNull();
     });
 
@@ -41,7 +41,7 @@ describe('getSearchRestrictionMessage', function () {
         $notToday = now()->addDay()->format('l');
         Config::set('podcast-link-finder.youtube.search_days', [$notToday]);
 
-        $service = new YouTubeService();
+        $service = new YouTubeService;
         $message = $service->getSearchRestrictionMessage();
 
         expect($message)->toContain($notToday);
@@ -54,7 +54,7 @@ describe('getSearchRestrictionMessage', function () {
         $day2 = now()->addDays(2)->format('l');
         Config::set('podcast-link-finder.youtube.search_days', [$day1, $day2]);
 
-        $service = new YouTubeService();
+        $service = new YouTubeService;
         $message = $service->getSearchRestrictionMessage();
 
         expect($message)->toContain($day1);

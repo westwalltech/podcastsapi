@@ -2,19 +2,19 @@
 
 namespace NewSong\PodcastLinkFinder;
 
-use Statamic\Providers\AddonServiceProvider;
-use Statamic\Facades\GraphQL;
-use Statamic\Facades\Permission;
+use Illuminate\Console\Scheduling\Schedule;
+use NewSong\PodcastLinkFinder\Console\Commands\AutoUpdateLinksCommand;
+use NewSong\PodcastLinkFinder\Console\Commands\BulkUpdateLinksCommand;
+use NewSong\PodcastLinkFinder\Console\Commands\FetchYouTubeLivestreamsCommand;
+use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
 use NewSong\PodcastLinkFinder\Fieldtypes\PodcastLinkFinder;
 use NewSong\PodcastLinkFinder\Fieldtypes\YouTubeLivestream;
-use NewSong\PodcastLinkFinder\Console\Commands\TestYouTubeCommand;
-use NewSong\PodcastLinkFinder\Console\Commands\BulkUpdateLinksCommand;
-use NewSong\PodcastLinkFinder\Console\Commands\AutoUpdateLinksCommand;
-use NewSong\PodcastLinkFinder\Console\Commands\FetchYouTubeLivestreamsCommand;
-use NewSong\PodcastLinkFinder\GraphQL\PodcastLinksType;
 use NewSong\PodcastLinkFinder\GraphQL\PlatformLinkType;
+use NewSong\PodcastLinkFinder\GraphQL\PodcastLinksType;
 use NewSong\PodcastLinkFinder\Support\Logger;
-use Illuminate\Console\Scheduling\Schedule;
+use Statamic\Facades\GraphQL;
+use Statamic\Facades\Permission;
+use Statamic\Providers\AddonServiceProvider;
 
 class ServiceProvider extends AddonServiceProvider
 {
@@ -127,7 +127,7 @@ class ServiceProvider extends AddonServiceProvider
      */
     protected function registerLoggingChannel(): void
     {
-        if (!config('podcast-link-finder.logging.enabled', true)) {
+        if (! config('podcast-link-finder.logging.enabled', true)) {
             return;
         }
 
@@ -144,7 +144,7 @@ class ServiceProvider extends AddonServiceProvider
      */
     protected function validateProductionConfig(): void
     {
-        if (!$this->app->environment('production')) {
+        if (! $this->app->environment('production')) {
             return;
         }
 
@@ -165,7 +165,7 @@ class ServiceProvider extends AddonServiceProvider
             $warnings[] = 'YOUTUBE_API_KEY not set';
         }
 
-        if (!empty($warnings)) {
+        if (! empty($warnings)) {
             Logger::warning('API credentials not fully configured', [
                 'missing' => $warnings,
                 'recommendation' => 'Set missing environment variables for full podcast link functionality.',
