@@ -110,8 +110,9 @@
 
                     <!-- Status Badge -->
                     <span
-                        class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-                        :class="getStatusBadgeClass('youtube')"
+                        class="ml-auto"
+                        :class="getStatusBadgeClass()"
+                        :style="getStatusBadgeStyle('youtube')"
                     >
                         {{ getStatusText('youtube') }}
                     </span>
@@ -222,8 +223,9 @@
                     <span class="font-semibold">Spotify</span>
 
                     <span
-                        class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-                        :class="getStatusBadgeClass('spotify')"
+                        class="ml-auto"
+                        :class="getStatusBadgeClass()"
+                        :style="getStatusBadgeStyle('spotify')"
                     >
                         {{ getStatusText('spotify') }}
                     </span>
@@ -316,8 +318,9 @@
                     <span class="font-semibold">Apple Podcasts</span>
 
                     <span
-                        class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-                        :class="getStatusBadgeClass('apple')"
+                        class="ml-auto"
+                        :class="getStatusBadgeClass()"
+                        :style="getStatusBadgeStyle('apple')"
                     >
                         {{ getStatusText('apple') }}
                     </span>
@@ -449,6 +452,8 @@ export default {
             manualApple: '',
             expandedPlatform: null,
             initializing: true,
+            isDark: false,
+            darkModeObserver: null,
         };
     },
 
@@ -510,10 +515,6 @@ export default {
             return !this.value.youtube_link || !this.value.spotify_link || !this.value.apple_podcasts_link;
         },
 
-        isDarkMode() {
-            return document.documentElement.classList.contains('dark');
-        },
-
         youtubeHeaderClass() {
             return this.getHeaderClass(this.value.youtube_link);
         },
@@ -552,6 +553,23 @@ export default {
         this.$nextTick(() => {
             this.initializing = false;
         });
+
+        // Set up reactive dark mode detection
+        this.isDark = document.documentElement.classList.contains('dark');
+        this.darkModeObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.attributeName === 'class') {
+                    this.isDark = document.documentElement.classList.contains('dark');
+                }
+            }
+        });
+        this.darkModeObserver.observe(document.documentElement, { attributes: true });
+    },
+
+    beforeUnmount() {
+        if (this.darkModeObserver) {
+            this.darkModeObserver.disconnect();
+        }
     },
 
     methods: {
@@ -831,13 +849,21 @@ export default {
             return 'Not linked';
         },
 
-        getStatusBadgeClass(platform) {
+        getStatusBadgeClass() {
+            // Base classes only
+            return 'text-xs px-2 py-0.5 rounded-full font-medium';
+        },
+
+        getStatusBadgeStyle(platform) {
             const searching = platform === 'youtube' ? this.searchingYouTube
                 : platform === 'spotify' ? this.searchingSpotify
                 : this.searchingApple;
 
             if (searching) {
-                return 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300';
+                return {
+                    backgroundColor: this.isDark ? 'rgb(30, 58, 138)' : 'rgb(219, 234, 254)', // blue-900 / blue-100
+                    color: this.isDark ? 'rgb(191, 219, 254)' : 'rgb(29, 78, 216)', // blue-200 / blue-700
+                };
             }
 
             const link = platform === 'youtube' ? this.value.youtube_link
@@ -845,21 +871,33 @@ export default {
                 : this.value.apple_podcasts_link;
 
             if (link) {
-                return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300';
+                return {
+                    backgroundColor: this.isDark ? 'rgb(20, 83, 45)' : 'rgb(220, 252, 231)', // green-900 / green-100
+                    color: this.isDark ? 'rgb(187, 247, 208)' : 'rgb(21, 128, 61)', // green-200 / green-700
+                };
             }
 
             const resultKey = platform === 'apple' ? 'apple_podcasts' : platform;
             const hasResults = this.platformResults?.[resultKey]?.length > 0;
 
             if (hasResults) {
-                return 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300';
+                return {
+                    backgroundColor: this.isDark ? 'rgb(120, 53, 15)' : 'rgb(254, 243, 199)', // amber-900 / amber-100
+                    color: this.isDark ? 'rgb(253, 230, 138)' : 'rgb(180, 83, 9)', // amber-200 / amber-700
+                };
             }
 
             if (this.platformResults && !hasResults) {
-                return 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300';
+                return {
+                    backgroundColor: this.isDark ? 'rgb(124, 45, 18)' : 'rgb(255, 237, 213)', // orange-900 / orange-100
+                    color: this.isDark ? 'rgb(254, 215, 170)' : 'rgb(194, 65, 12)', // orange-200 / orange-700
+                };
             }
 
-            return 'bg-gray-100 dark:bg-dark-600 text-gray-600 dark:text-dark-175';
+            return {
+                backgroundColor: this.isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)', // gray-700 / gray-100
+                color: this.isDark ? 'rgb(209, 213, 219)' : 'rgb(75, 85, 99)', // gray-300 / gray-600
+            };
         },
 
         formatDate(dateString) {
@@ -874,19 +912,17 @@ export default {
         },
 
         getHeaderStyle(hasLink) {
-            const isDark = document.documentElement.classList.contains('dark');
-
             if (hasLink) {
                 return {
-                    backgroundColor: isDark ? 'rgb(20, 83, 45)' : 'rgb(220, 252, 231)', // green-950 / green-100
-                    color: isDark ? 'rgb(187, 247, 208)' : 'rgb(22, 101, 52)', // green-200 / green-800
-                    borderColor: isDark ? 'rgb(22, 101, 52)' : 'rgb(187, 247, 208)', // green-800 / green-200
+                    backgroundColor: this.isDark ? 'rgb(20, 83, 45)' : 'rgb(220, 252, 231)', // green-950 / green-100
+                    color: this.isDark ? 'rgb(187, 247, 208)' : 'rgb(22, 101, 52)', // green-200 / green-800
+                    borderColor: this.isDark ? 'rgb(22, 101, 52)' : 'rgb(187, 247, 208)', // green-800 / green-200
                 };
             }
             return {
-                backgroundColor: isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)', // gray-700 / gray-100
-                color: isDark ? 'rgb(209, 213, 219)' : 'rgb(55, 65, 81)', // gray-300 / gray-700
-                borderColor: isDark ? 'rgb(75, 85, 99)' : 'rgb(229, 231, 235)', // gray-600 / gray-200
+                backgroundColor: this.isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)', // gray-700 / gray-100
+                color: this.isDark ? 'rgb(209, 213, 219)' : 'rgb(55, 65, 81)', // gray-300 / gray-700
+                borderColor: this.isDark ? 'rgb(75, 85, 99)' : 'rgb(229, 231, 235)', // gray-600 / gray-200
             };
         },
     },
