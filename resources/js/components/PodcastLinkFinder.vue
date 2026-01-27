@@ -98,9 +98,10 @@
             <!-- YouTube Card -->
             <Card :inset="true" class="p-0 overflow-hidden">
                 <div
-                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
-                    :class="youtubeHeaderClass"
-                    :style="youtubeHeaderStyle"
+                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b"
+                    :class="value.youtube_link
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
                     @click="expandedPlatform = expandedPlatform === 'youtube' ? null : 'youtube'"
                 >
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -212,9 +213,10 @@
             <!-- Spotify Card -->
             <Card :inset="true" class="p-0 overflow-hidden">
                 <div
-                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
-                    :class="spotifyHeaderClass"
-                    :style="spotifyHeaderStyle"
+                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b"
+                    :class="value.spotify_link
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
                     @click="expandedPlatform = expandedPlatform === 'spotify' ? null : 'spotify'"
                 >
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -307,9 +309,10 @@
             <!-- Apple Podcasts Card -->
             <Card :inset="true" class="p-0 overflow-hidden">
                 <div
-                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
-                    :class="appleHeaderClass"
-                    :style="appleHeaderStyle"
+                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b"
+                    :class="value.apple_podcasts_link
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
                     @click="expandedPlatform = expandedPlatform === 'apple' ? null : 'apple'"
                 >
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -454,8 +457,6 @@ export default {
             manualApple: '',
             expandedPlatform: null,
             initializing: true,
-            isDark: false,
-            darkModeObserver: null,
         };
     },
 
@@ -516,30 +517,6 @@ export default {
         hasUnlinkedPlatforms() {
             return !this.value.youtube_link || !this.value.spotify_link || !this.value.apple_podcasts_link;
         },
-
-        youtubeHeaderClass() {
-            return this.getHeaderClass(this.value.youtube_link);
-        },
-
-        spotifyHeaderClass() {
-            return this.getHeaderClass(this.value.spotify_link);
-        },
-
-        appleHeaderClass() {
-            return this.getHeaderClass(this.value.apple_podcasts_link);
-        },
-
-        youtubeHeaderStyle() {
-            return this.getHeaderStyle(this.value.youtube_link);
-        },
-
-        spotifyHeaderStyle() {
-            return this.getHeaderStyle(this.value.spotify_link);
-        },
-
-        appleHeaderStyle() {
-            return this.getHeaderStyle(this.value.apple_podcasts_link);
-        },
     },
 
     mounted() {
@@ -555,23 +532,6 @@ export default {
         this.$nextTick(() => {
             this.initializing = false;
         });
-
-        // Set up reactive dark mode detection
-        this.isDark = document.documentElement.classList.contains('dark');
-        this.darkModeObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                if (mutation.attributeName === 'class') {
-                    this.isDark = document.documentElement.classList.contains('dark');
-                }
-            }
-        });
-        this.darkModeObserver.observe(document.documentElement, { attributes: true });
-    },
-
-    beforeUnmount() {
-        if (this.darkModeObserver) {
-            this.darkModeObserver.disconnect();
-        }
     },
 
     methods: {
@@ -886,26 +846,6 @@ export default {
             if (!dateString) return '';
             const date = new Date(dateString);
             return date.toLocaleDateString();
-        },
-
-        getHeaderClass(hasLink) {
-            // Base classes that don't change with dark mode
-            return 'border-b';
-        },
-
-        getHeaderStyle(hasLink) {
-            if (hasLink) {
-                return {
-                    backgroundColor: this.isDark ? 'rgb(20, 83, 45)' : 'rgb(220, 252, 231)', // green-950 / green-100
-                    color: this.isDark ? 'rgb(187, 247, 208)' : 'rgb(22, 101, 52)', // green-200 / green-800
-                    borderColor: this.isDark ? 'rgb(22, 101, 52)' : 'rgb(187, 247, 208)', // green-800 / green-200
-                };
-            }
-            return {
-                backgroundColor: this.isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)', // gray-700 / gray-100
-                color: this.isDark ? 'rgb(209, 213, 219)' : 'rgb(55, 65, 81)', // gray-300 / gray-700
-                borderColor: this.isDark ? 'rgb(75, 85, 99)' : 'rgb(229, 231, 235)', // gray-600 / gray-200
-            };
         },
     },
 };
