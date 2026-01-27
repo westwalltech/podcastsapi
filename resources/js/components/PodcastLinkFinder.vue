@@ -109,13 +109,13 @@
                     <span class="font-semibold">YouTube</span>
 
                     <!-- Status Badge -->
-                    <span
+                    <Badge
                         class="ml-auto"
-                        :class="getStatusBadgeClass()"
-                        :style="getStatusBadgeStyle('youtube')"
-                    >
-                        {{ getStatusText('youtube') }}
-                    </span>
+                        :text="getStatusText('youtube')"
+                        :color="getStatusBadgeColor('youtube')"
+                        size="sm"
+                        pill
+                    />
 
                     <!-- Expand Icon -->
                     <svg
@@ -222,13 +222,13 @@
                     </svg>
                     <span class="font-semibold">Spotify</span>
 
-                    <span
+                    <Badge
                         class="ml-auto"
-                        :class="getStatusBadgeClass()"
-                        :style="getStatusBadgeStyle('spotify')"
-                    >
-                        {{ getStatusText('spotify') }}
-                    </span>
+                        :text="getStatusText('spotify')"
+                        :color="getStatusBadgeColor('spotify')"
+                        size="sm"
+                        pill
+                    />
 
                     <svg
                         class="w-4 h-4 transition-transform shrink-0"
@@ -317,13 +317,13 @@
                     </svg>
                     <span class="font-semibold">Apple Podcasts</span>
 
-                    <span
+                    <Badge
                         class="ml-auto"
-                        :class="getStatusBadgeClass()"
-                        :style="getStatusBadgeStyle('apple')"
-                    >
-                        {{ getStatusText('apple') }}
-                    </span>
+                        :text="getStatusText('apple')"
+                        :color="getStatusBadgeColor('apple')"
+                        size="sm"
+                        pill
+                    />
 
                     <svg
                         class="w-4 h-4 transition-transform shrink-0"
@@ -411,6 +411,7 @@
 import { Fieldtype } from '@statamic/cms';
 import {
     Alert,
+    Badge,
     Button,
     Card,
     Input,
@@ -422,6 +423,7 @@ export default {
 
     components: {
         Alert,
+        Badge,
         Button,
         Card,
         Input,
@@ -849,21 +851,13 @@ export default {
             return 'Not linked';
         },
 
-        getStatusBadgeClass() {
-            // Base classes only
-            return 'text-xs px-2 py-0.5 rounded-full font-medium';
-        },
-
-        getStatusBadgeStyle(platform) {
+        getStatusBadgeColor(platform) {
             const searching = platform === 'youtube' ? this.searchingYouTube
                 : platform === 'spotify' ? this.searchingSpotify
                 : this.searchingApple;
 
             if (searching) {
-                return {
-                    backgroundColor: this.isDark ? 'rgb(30, 58, 138)' : 'rgb(219, 234, 254)', // blue-900 / blue-100
-                    color: this.isDark ? 'rgb(191, 219, 254)' : 'rgb(29, 78, 216)', // blue-200 / blue-700
-                };
+                return 'blue';
             }
 
             const link = platform === 'youtube' ? this.value.youtube_link
@@ -871,33 +865,21 @@ export default {
                 : this.value.apple_podcasts_link;
 
             if (link) {
-                return {
-                    backgroundColor: this.isDark ? 'rgb(20, 83, 45)' : 'rgb(220, 252, 231)', // green-900 / green-100
-                    color: this.isDark ? 'rgb(187, 247, 208)' : 'rgb(21, 128, 61)', // green-200 / green-700
-                };
+                return 'green';
             }
 
             const resultKey = platform === 'apple' ? 'apple_podcasts' : platform;
             const hasResults = this.platformResults?.[resultKey]?.length > 0;
 
             if (hasResults) {
-                return {
-                    backgroundColor: this.isDark ? 'rgb(120, 53, 15)' : 'rgb(254, 243, 199)', // amber-900 / amber-100
-                    color: this.isDark ? 'rgb(253, 230, 138)' : 'rgb(180, 83, 9)', // amber-200 / amber-700
-                };
+                return 'amber';
             }
 
             if (this.platformResults && !hasResults) {
-                return {
-                    backgroundColor: this.isDark ? 'rgb(124, 45, 18)' : 'rgb(255, 237, 213)', // orange-900 / orange-100
-                    color: this.isDark ? 'rgb(254, 215, 170)' : 'rgb(194, 65, 12)', // orange-200 / orange-700
-                };
+                return 'orange';
             }
 
-            return {
-                backgroundColor: this.isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)', // gray-700 / gray-100
-                color: this.isDark ? 'rgb(209, 213, 219)' : 'rgb(75, 85, 99)', // gray-300 / gray-600
-            };
+            return 'default';
         },
 
         formatDate(dateString) {
