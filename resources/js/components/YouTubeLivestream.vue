@@ -38,7 +38,7 @@
         <!-- Show URL when we have one -->
         <Card v-else-if="value" class="p-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <div class="flex items-center gap-3">
-                <Icon name="check-circle" class="size-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                <Icon name="checkmark" class="size-5 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <div class="flex-1 min-w-0">
                     <div class="text-sm font-medium text-green-800 dark:text-green-300">
                         YouTube Livestream
