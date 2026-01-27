@@ -100,6 +100,7 @@
                 <div
                     class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
                     :class="youtubeHeaderClass"
+                    :style="youtubeHeaderStyle"
                     @click="expandedPlatform = expandedPlatform === 'youtube' ? null : 'youtube'"
                 >
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -126,7 +127,7 @@
                 </div>
 
                 <!-- YouTube Content -->
-                <div v-if="expandedPlatform === 'youtube'" class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div v-if="expandedPlatform === 'youtube'" class="p-4 border-t border-gray-200 dark:border-dark-400">
                     <!-- Current Link Display -->
                     <div v-if="value.youtube_link" class="flex items-center gap-2 mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
                         <svg class="size-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,6 +213,7 @@
                 <div
                     class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
                     :class="spotifyHeaderClass"
+                    :style="spotifyHeaderStyle"
                     @click="expandedPlatform = expandedPlatform === 'spotify' ? null : 'spotify'"
                 >
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -236,7 +238,7 @@
                 </div>
 
                 <!-- Spotify Content -->
-                <div v-if="expandedPlatform === 'spotify'" class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div v-if="expandedPlatform === 'spotify'" class="p-4 border-t border-gray-200 dark:border-dark-400">
                     <div v-if="value.spotify_link" class="flex items-center gap-2 mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
                         <svg class="size-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -305,6 +307,7 @@
                 <div
                     class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
                     :class="appleHeaderClass"
+                    :style="appleHeaderStyle"
                     @click="expandedPlatform = expandedPlatform === 'apple' ? null : 'apple'"
                 >
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -329,7 +332,7 @@
                 </div>
 
                 <!-- Apple Content -->
-                <div v-if="expandedPlatform === 'apple'" class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div v-if="expandedPlatform === 'apple'" class="p-4 border-t border-gray-200 dark:border-dark-400">
                     <div v-if="value.apple_podcasts_link" class="flex items-center gap-2 mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
                         <svg class="size-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -507,25 +510,32 @@ export default {
             return !this.value.youtube_link || !this.value.spotify_link || !this.value.apple_podcasts_link;
         },
 
+        isDarkMode() {
+            return document.documentElement.classList.contains('dark');
+        },
+
         youtubeHeaderClass() {
-            if (this.value.youtube_link) {
-                return 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-            }
-            return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+            return this.getHeaderClass(this.value.youtube_link);
         },
 
         spotifyHeaderClass() {
-            if (this.value.spotify_link) {
-                return 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-            }
-            return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+            return this.getHeaderClass(this.value.spotify_link);
         },
 
         appleHeaderClass() {
-            if (this.value.apple_podcasts_link) {
-                return 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-            }
-            return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+            return this.getHeaderClass(this.value.apple_podcasts_link);
+        },
+
+        youtubeHeaderStyle() {
+            return this.getHeaderStyle(this.value.youtube_link);
+        },
+
+        spotifyHeaderStyle() {
+            return this.getHeaderStyle(this.value.spotify_link);
+        },
+
+        appleHeaderStyle() {
+            return this.getHeaderStyle(this.value.apple_podcasts_link);
         },
     },
 
@@ -827,7 +837,7 @@ export default {
                 : this.searchingApple;
 
             if (searching) {
-                return 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
+                return 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300';
             }
 
             const link = platform === 'youtube' ? this.value.youtube_link
@@ -835,27 +845,49 @@ export default {
                 : this.value.apple_podcasts_link;
 
             if (link) {
-                return 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300';
+                return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300';
             }
 
             const resultKey = platform === 'apple' ? 'apple_podcasts' : platform;
             const hasResults = this.platformResults?.[resultKey]?.length > 0;
 
             if (hasResults) {
-                return 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300';
+                return 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300';
             }
 
             if (this.platformResults && !hasResults) {
-                return 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300';
+                return 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300';
             }
 
-            return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400';
+            return 'bg-gray-100 dark:bg-dark-600 text-gray-600 dark:text-dark-175';
         },
 
         formatDate(dateString) {
             if (!dateString) return '';
             const date = new Date(dateString);
             return date.toLocaleDateString();
+        },
+
+        getHeaderClass(hasLink) {
+            // Base classes that don't change with dark mode
+            return 'border-b';
+        },
+
+        getHeaderStyle(hasLink) {
+            const isDark = document.documentElement.classList.contains('dark');
+
+            if (hasLink) {
+                return {
+                    backgroundColor: isDark ? 'rgb(20, 83, 45)' : 'rgb(220, 252, 231)', // green-950 / green-100
+                    color: isDark ? 'rgb(187, 247, 208)' : 'rgb(22, 101, 52)', // green-200 / green-800
+                    borderColor: isDark ? 'rgb(22, 101, 52)' : 'rgb(187, 247, 208)', // green-800 / green-200
+                };
+            }
+            return {
+                backgroundColor: isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)', // gray-700 / gray-100
+                color: isDark ? 'rgb(209, 213, 219)' : 'rgb(55, 65, 81)', // gray-300 / gray-700
+                borderColor: isDark ? 'rgb(75, 85, 99)' : 'rgb(229, 231, 235)', // gray-600 / gray-200
+            };
         },
     },
 };
