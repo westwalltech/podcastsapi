@@ -36,12 +36,15 @@ class PodcastSearchController
      */
     public function searchEpisodes(Request $request): JsonResponse
     {
-        $query = $request->input('query', '');
-        $status = $request->input('status', 'published');
-        $limit = (int) $request->input('limit', config('podcast-link-finder.search.max_results', 20));
+        $validated = $request->validate([
+            'query' => 'nullable|string|max:255',
+            'status' => 'nullable|string|in:published,scheduled,draft,all',
+            'limit' => 'nullable|integer|min:10|max:100',
+        ]);
 
-        // Clamp limit between 10 and 100
-        $limit = max(10, min(100, $limit));
+        $query = $validated['query'] ?? '';
+        $status = $validated['status'] ?? 'published';
+        $limit = $validated['limit'] ?? config('podcast-link-finder.search.max_results', 20);
 
         // Allow 'all' as a special value to fetch all statuses
         $statusFilter = $status === 'all' ? null : $status;
@@ -66,14 +69,11 @@ class PodcastSearchController
      */
     public function findLinks(Request $request): JsonResponse
     {
-        $episodeId = $request->input('episode_id');
+        $validated = $request->validate([
+            'episode_id' => 'required|string|max:50',
+        ]);
 
-        if (!$episodeId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Episode ID is required',
-            ], 400);
-        }
+        $episodeId = $validated['episode_id'];
 
         // Get the episode details from Transistor
         $episode = $this->transistor->getEpisode($episodeId);
@@ -131,14 +131,12 @@ class PodcastSearchController
      */
     public function searchPlatforms(Request $request): JsonResponse
     {
-        $episodeId = $request->input('episode_id');
+        $validated = $request->validate([
+            'episode_id' => 'required|string|max:50',
+            'force_youtube' => 'nullable|boolean',
+        ]);
 
-        if (!$episodeId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Episode ID is required',
-            ], 400);
-        }
+        $episodeId = $validated['episode_id'];
 
         // Get the episode details from Transistor
         $episode = $this->transistor->getEpisode($episodeId);
@@ -177,7 +175,7 @@ class PodcastSearchController
         }
 
         // Check if YouTube search is allowed today (can be forced via request)
-        $forceYouTube = $request->boolean('force_youtube', false);
+        $forceYouTube = $validated['force_youtube'] ?? false;
         $isSearchAllowed = $this->youtube->isSearchAllowedToday();
 
         if (!$forceYouTube && !$isSearchAllowed) {
@@ -194,7 +192,7 @@ class PodcastSearchController
                 }
             } catch (\Exception $e) {
                 \Log::warning("Failed to search YouTube: {$e->getMessage()}");
-                $warnings['youtube'] = 'Failed to search YouTube. ' . $e->getMessage();
+                $warnings['youtube'] = 'Failed to search YouTube. Please check the logs for details.';
             }
         }
 

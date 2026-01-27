@@ -33,7 +33,9 @@
         "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^9.0"
+        "orchestra/testbench": "^9.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0"
     },
     "autoload": {
         "psr-4": {
@@ -42,12 +44,13 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "NewSong\\PodcastLinkFinder\\Tests\\": "tests"
+            "NewSong\\PodcastLinkFinder\\Tests\\": "tests/"
         }
     },
     "config": {
         "allow-plugins": {
-            "pixelfear/composer-dist-plugin": true
+            "pixelfear/composer-dist-plugin": true,
+            "pestphp/pest-plugin": true
         }
     },
     "extra": {
@@ -60,6 +63,10 @@
                 "NewSong\\PodcastLinkFinder\\ServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "test": "pest",
+        "test-coverage": "pest --coverage"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

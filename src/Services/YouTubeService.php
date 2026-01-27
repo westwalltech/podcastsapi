@@ -386,9 +386,11 @@ class YouTubeService
                 ];
             }
 
+            \Log::error('YouTube API Error: ' . $message);
+
             return [
                 'success' => false,
-                'message' => 'YouTube API Error: ' . $message
+                'message' => 'YouTube API connection failed. Please check the logs for details.'
             ];
         }
     }

@@ -78,16 +78,11 @@
                         <Button
                             v-if="hasUnlinkedPlatforms"
                             @click="searchMissingPlatforms"
-                            :disabled="searchingPlatforms"
+                            :loading="searchingPlatforms"
                             variant="primary"
                             size="sm"
-                        >
-                            <svg v-if="searchingPlatforms" class="animate-spin size-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            {{ searchingPlatforms ? 'Searching...' : 'Search Missing' }}
-                        </Button>
+                            text="Search Missing"
+                        />
                     </div>
                 </div>
             </Card>
@@ -98,16 +93,20 @@
             <!-- YouTube Card -->
             <Card :inset="true" class="p-0 overflow-hidden">
                 <div
-                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b"
-                    :class="value.youtube_link
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
+                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                     @click="expandedPlatform = expandedPlatform === 'youtube' ? null : 'youtube'"
                 >
-                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        :class="value.youtube_link ? 'text-red-600' : 'text-gray-400 dark:text-gray-500'"
+                        viewBox="0 0 24 24" fill="currentColor"
+                    >
                         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                     </svg>
-                    <span class="font-semibold">YouTube</span>
+                    <span
+                        class="font-semibold"
+                        :class="value.youtube_link ? 'text-red-600 dark:text-red-500' : 'text-gray-700 dark:text-gray-300'"
+                    >YouTube</span>
 
                     <!-- Status Badge -->
                     <Badge
@@ -131,10 +130,7 @@
                 <!-- YouTube Content -->
                 <div v-if="expandedPlatform === 'youtube'" class="p-4 border-t border-gray-200 dark:border-dark-400">
                     <!-- Current Link Display -->
-                    <div v-if="value.youtube_link" class="flex items-center gap-2 mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
-                        <svg class="size-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
+                    <div v-if="value.youtube_link" class="flex items-center gap-2 mb-3">
                         <a
                             :href="value.youtube_link"
                             target="_blank"
@@ -147,12 +143,10 @@
                             @click.stop="clearLink('youtube')"
                             variant="ghost"
                             size="sm"
+                            icon="x"
+                            icon-only
                             class="shrink-0 text-gray-400 hover:text-red-500"
-                        >
-                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </Button>
+                        />
                     </div>
 
                     <!-- Warning for YouTube restrictions -->
@@ -194,18 +188,12 @@
                         </div>
                         <Button
                             @click="searchPlatform('youtube')"
-                            :disabled="searchingYouTube"
+                            :loading="searchingYouTube"
                             variant="secondary"
                             class="shrink-0"
-                        >
-                            <svg v-if="searchingYouTube" class="animate-spin size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <svg v-else class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </Button>
+                            icon="magnifying-glass"
+                            icon-only
+                        />
                     </div>
                 </div>
             </Card>
@@ -213,16 +201,20 @@
             <!-- Spotify Card -->
             <Card :inset="true" class="p-0 overflow-hidden">
                 <div
-                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b"
-                    :class="value.spotify_link
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
+                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                     @click="expandedPlatform = expandedPlatform === 'spotify' ? null : 'spotify'"
                 >
-                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        :class="value.spotify_link ? 'text-[#1DB954]' : 'text-gray-400 dark:text-gray-500'"
+                        viewBox="0 0 24 24" fill="currentColor"
+                    >
                         <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                     </svg>
-                    <span class="font-semibold">Spotify</span>
+                    <span
+                        class="font-semibold"
+                        :class="value.spotify_link ? 'text-[#1DB954]' : 'text-gray-700 dark:text-gray-300'"
+                    >Spotify</span>
 
                     <Badge
                         class="ml-auto"
@@ -243,10 +235,7 @@
 
                 <!-- Spotify Content -->
                 <div v-if="expandedPlatform === 'spotify'" class="p-4 border-t border-gray-200 dark:border-dark-400">
-                    <div v-if="value.spotify_link" class="flex items-center gap-2 mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
-                        <svg class="size-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
+                    <div v-if="value.spotify_link" class="flex items-center gap-2 mb-3">
                         <a
                             :href="value.spotify_link"
                             target="_blank"
@@ -259,12 +248,10 @@
                             @click.stop="clearLink('spotify')"
                             variant="ghost"
                             size="sm"
+                            icon="x"
+                            icon-only
                             class="shrink-0 text-gray-400 hover:text-red-500"
-                        >
-                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </Button>
+                        />
                     </div>
 
                     <div v-if="platformResults?.spotify?.length > 0 && !value.spotify_link" class="mb-3">
@@ -290,18 +277,12 @@
                         </div>
                         <Button
                             @click="searchPlatform('spotify')"
-                            :disabled="searchingSpotify"
+                            :loading="searchingSpotify"
                             variant="secondary"
                             class="shrink-0"
-                        >
-                            <svg v-if="searchingSpotify" class="animate-spin size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <svg v-else class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </Button>
+                            icon="magnifying-glass"
+                            icon-only
+                        />
                     </div>
                 </div>
             </Card>
@@ -309,16 +290,20 @@
             <!-- Apple Podcasts Card -->
             <Card :inset="true" class="p-0 overflow-hidden">
                 <div
-                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b"
-                    :class="value.apple_podcasts_link
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
+                    class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none border-b bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                     @click="expandedPlatform = expandedPlatform === 'apple' ? null : 'apple'"
                 >
-                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        :class="value.apple_podcasts_link ? 'text-[#9933CC]' : 'text-gray-400 dark:text-gray-500'"
+                        viewBox="0 0 24 24" fill="currentColor"
+                    >
                         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                     </svg>
-                    <span class="font-semibold">Apple Podcasts</span>
+                    <span
+                        class="font-semibold"
+                        :class="value.apple_podcasts_link ? 'text-[#9933CC]' : 'text-gray-700 dark:text-gray-300'"
+                    >Apple Podcasts</span>
 
                     <Badge
                         class="ml-auto"
@@ -339,10 +324,7 @@
 
                 <!-- Apple Content -->
                 <div v-if="expandedPlatform === 'apple'" class="p-4 border-t border-gray-200 dark:border-dark-400">
-                    <div v-if="value.apple_podcasts_link" class="flex items-center gap-2 mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
-                        <svg class="size-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
+                    <div v-if="value.apple_podcasts_link" class="flex items-center gap-2 mb-3">
                         <a
                             :href="value.apple_podcasts_link"
                             target="_blank"
@@ -355,12 +337,10 @@
                             @click.stop="clearLink('apple')"
                             variant="ghost"
                             size="sm"
+                            icon="x"
+                            icon-only
                             class="shrink-0 text-gray-400 hover:text-red-500"
-                        >
-                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </Button>
+                        />
                     </div>
 
                     <div v-if="platformResults?.apple_podcasts?.length > 0 && !value.apple_podcasts_link" class="mb-3">
@@ -386,18 +366,12 @@
                         </div>
                         <Button
                             @click="searchPlatform('apple')"
-                            :disabled="searchingApple"
+                            :loading="searchingApple"
                             variant="secondary"
                             class="shrink-0"
-                        >
-                            <svg v-if="searchingApple" class="animate-spin size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <svg v-else class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </Button>
+                            icon="magnifying-glass"
+                            icon-only
+                        />
                     </div>
                 </div>
             </Card>

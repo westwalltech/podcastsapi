@@ -133,7 +133,7 @@ class YouTubeLivestreamController
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to save entry: ' . $e->getMessage(),
+                'message' => 'Failed to save entry. Please try again or check the logs for details.',
             ], 500);
         }
     }
@@ -146,6 +146,10 @@ class YouTubeLivestreamController
      */
     public function upcoming(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'limit' => 'nullable|integer|min:1|max:50',
+        ]);
+
         if (!$this->livestream->isConfigured()) {
             return response()->json([
                 'success' => false,
@@ -153,7 +157,7 @@ class YouTubeLivestreamController
             ], 400);
         }
 
-        $limit = (int) $request->input('limit', 10);
+        $limit = $validated['limit'] ?? 10;
         $livestreams = $this->livestream->getUpcomingLivestreams($limit);
 
         return response()->json([
@@ -169,17 +173,13 @@ class YouTubeLivestreamController
      * @param Request $request
      * @return JsonResponse
      */
-    public function validate(Request $request): JsonResponse
+    public function validateUrl(Request $request): JsonResponse
     {
-        $url = $request->input('url');
+        $validated = $request->validate([
+            'url' => 'required|url|max:500',
+        ]);
 
-        if (empty($url)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'URL is required',
-            ], 400);
-        }
-
+        $url = $validated['url'];
         $isValid = $this->livestream->isValidLivestreamUrl($url);
         $videoId = $this->livestream->extractVideoId($url);
         $details = $videoId ? $this->livestream->getVideoDetails($videoId) : [];

@@ -299,9 +299,11 @@ class YouTubeLivestreamService
                 'message' => 'YouTube API returned status: ' . $response->getStatusCode(),
             ];
         } catch (\Exception $e) {
+            \Log::error('[YouTube Livestream] API connection test failed: ' . $e->getMessage());
+
             return [
                 'success' => false,
-                'message' => 'YouTube API Error: ' . $e->getMessage(),
+                'message' => 'YouTube API connection failed. Please check the logs for details.',
             ];
         }
     }
