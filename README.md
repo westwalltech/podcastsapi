@@ -2,7 +2,7 @@
 
 A Statamic addon that automatically finds and links podcast episodes across multiple platforms (Spotify, Apple Podcasts, and YouTube) from your Transistor FM podcast.
 
-![Statamic 5.0+](https://img.shields.io/badge/Statamic-5.0+-FF269E?style=flat-square&link=https://statamic.com)
+![Statamic 6.0+](https://img.shields.io/badge/Statamic-6.0+-FF269E?style=flat-square&link=https://statamic.com)
 [![Latest Version](https://img.shields.io/github/v/release/newsong/podcast-link-finder?style=flat-square)](https://github.com/newsong/podcast-link-finder/releases)
 
 ## Features
@@ -26,8 +26,9 @@ A Statamic addon that automatically finds and links podcast episodes across mult
 
 ## Requirements
 
-- PHP 8.1 or higher
-- Statamic 5.0 or higher
+- PHP 8.5 or higher
+- Statamic 6.0 or higher
+- Laravel 12 or higher
 - Guzzle HTTP Client 7.0 or higher
 
 ## Installation
@@ -701,5 +702,5 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/newsong/podcast-link-finder/issues)
-- **Statamic Version**: 5.0+
-- **PHP Version**: 8.1+
+- **Statamic Version**: 6.0+
+- **PHP Version**: 8.5+
